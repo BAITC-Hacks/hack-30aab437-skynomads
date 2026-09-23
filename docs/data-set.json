@@ -1,0 +1,145 @@
+{
+  "source": "docs/data-set.odt",
+  "indicators": {
+    "scale": { "min": 0, "max": 100, "higherIsBetter": true },
+    "note": "Показатели направлены одинаково: проблемы вроде пробок или смога уже перевёрнуты (100 = нет проблемы).",
+    "definitions": [
+      { "code": "T1", "direction": "Транспорт", "name": "Разгрузка дорог", "interpretation": "100 = нет пробок в час пик, 0 = стоит всё" },
+      { "code": "T2", "direction": "Транспорт", "name": "Доступность общественного транспорта", "interpretation": "100 = все жители в 500 м от остановки с интервалом ≤10 мин" },
+      { "code": "E1", "direction": "Экология", "name": "Озеленение", "interpretation": "100 = ≥20 м² зелени на жителя" },
+      { "code": "E2", "direction": "Экология", "name": "Качество воздуха", "interpretation": "100 = зимой AQI ≤50, 0 = хронический смог" },
+      { "code": "S1", "direction": "Соцсфера", "name": "Школы и детсады", "interpretation": "100 = 100% нормативной потребности, без 2-й смены" },
+      { "code": "S2", "direction": "Соцсфера", "name": "Поликлиники и первичная медпомощь", "interpretation": "100 = норматив на жителя выполнен полностью" },
+      { "code": "B1", "direction": "Безопасность", "name": "Безопасность улиц", "interpretation": "100 = освещение и камеры везде, минимум происшествий" },
+      { "code": "B2", "direction": "Безопасность", "name": "Безопасность дорожного движения", "interpretation": "100 = минимум ДТП с пострадавшими" },
+      { "code": "C1", "direction": "Сервисы", "name": "Надёжность ЖКХ", "interpretation": "100 = нет аварий отопления/воды за год" },
+      { "code": "C2", "direction": "Сервисы", "name": "Скорость решения обращений жителей", "interpretation": "100 = все обращения закрыты в срок" }
+    ]
+  },
+  "districts": [
+    {
+      "name": "Есиль", "populationShare": 0.27,
+      "indicators": { "T1": 45, "T2": 62, "E1": 68, "E2": 72, "S1": 48, "S2": 55, "B1": 78, "B2": 60, "C1": 75, "C2": 70 },
+      "baselineDistrictScore": 62.99,
+      "profile": "Богатый, но с пробками на мостах и переполненными школами."
+    },
+    {
+      "name": "Алматы", "populationShare": 0.24,
+      "indicators": { "T1": 40, "T2": 75, "E1": 50, "E2": 55, "S1": 60, "S2": 65, "B1": 62, "B2": 52, "C1": 50, "C2": 60 },
+      "baselineDistrictScore": 57.06,
+      "profile": "Старый ЖКХ и пробки."
+    },
+    {
+      "name": "Сарыарка", "populationShare": 0.20,
+      "indicators": { "T1": 50, "T2": 70, "E1": 42, "E2": 40, "S1": 62, "S2": 68, "B1": 58, "B2": 55, "C1": 45, "C2": 55 },
+      "baselineDistrictScore": 54.65,
+      "profile": "Смог от частного сектора, слабое озеленение."
+    },
+    {
+      "name": "Байконур", "populationShare": 0.13,
+      "indicators": { "T1": 52, "T2": 68, "E1": 55, "E2": 50, "S1": 58, "S2": 60, "B1": 52, "B2": 58, "C1": 55, "C2": 58 },
+      "baselineDistrictScore": 56.63,
+      "profile": "Середняк без ярких перекосов."
+    },
+    {
+      "name": "Нура", "populationShare": 0.16,
+      "indicators": { "T1": 55, "T2": 40, "E1": 45, "E2": 65, "S1": 38, "S2": 35, "B1": 55, "B2": 50, "C1": 60, "C2": 50 },
+      "baselineDistrictScore": 49.18,
+      "profile": "Главный «аутсайдер» по соцсфере и транспорту."
+    }
+  ],
+  "simulation": {
+    "horizonQuarters": 8,
+    "horizonDescription": "2 условных года",
+    "lagEffectFractionFormula": "(8 - lagQuarters) / 8",
+    "scopeMeaning": {
+      "Район": "Нужно выбрать один район, эффект применяется только к нему.",
+      "Город": "Район не указывается, эффект применяется ко всем 5 районам."
+    }
+  },
+  "measures": [
+    { "id": "M1", "direction": "Транспорт", "name": "Выделенные полосы для автобусов", "scope": "Район", "cost": 18, "lagQuarters": 2, "fullEffects": { "T1": 6, "T2": 9 } },
+    { "id": "M2", "direction": "Транспорт", "name": "Умные светофоры (адаптивное управление)", "scope": "Город", "cost": 22, "lagQuarters": 2, "fullEffects": { "T1": 4, "B2": 3 } },
+    { "id": "M3", "direction": "Транспорт", "name": "Линия ЛРТ / расширение", "scope": "Район", "cost": 30, "lagQuarters": 4, "fullEffects": { "T1": 16, "T2": 20, "E2": 4 } },
+    { "id": "M4", "direction": "Экология", "name": "Парк / сквер", "scope": "Район", "cost": 15, "lagQuarters": 2, "fullEffects": { "E1": 12, "E2": 3, "B1": 2 } },
+    { "id": "M5", "direction": "Экология", "name": "Перевод частного сектора на чистое топливо", "scope": "Район", "cost": 25, "lagQuarters": 3, "fullEffects": { "E2": 14, "C1": 4 } },
+    { "id": "M6", "direction": "Экология", "name": "Городская программа озеленения и ветрозащитных полос", "scope": "Город", "cost": 20, "lagQuarters": 4, "fullEffects": { "E1": 5, "E2": 3 } },
+    { "id": "M7", "direction": "Соцсфера", "name": "Школа + детсад (модульное строительство)", "scope": "Район", "cost": 24, "lagQuarters": 3, "fullEffects": { "S1": 16 } },
+    { "id": "M8", "direction": "Соцсфера", "name": "Центр семейного здоровья / поликлиника", "scope": "Район", "cost": 20, "lagQuarters": 3, "fullEffects": { "S2": 14 } },
+    { "id": "M9", "direction": "Соцсфера", "name": "Дворовые спорт-хабы", "scope": "Район", "cost": 10, "lagQuarters": 1, "fullEffects": { "S1": 3, "S2": 3, "B1": 3 } },
+    { "id": "M10", "direction": "Безопасность", "name": "Освещение и камеры (расширение Safe City)", "scope": "Район", "cost": 12, "lagQuarters": 1, "fullEffects": { "B1": 12, "B2": 2 } },
+    { "id": "M11", "direction": "Безопасность", "name": "Безопасные переходы и школьные зоны", "scope": "Район", "cost": 10, "lagQuarters": 1, "fullEffects": { "B2": 12, "T1": -2 } },
+    { "id": "M12", "direction": "Сервисы", "name": "Единая цифровая платформа обращений", "scope": "Город", "cost": 14, "lagQuarters": 1, "fullEffects": { "C2": 5 } },
+    { "id": "M13", "direction": "Сервисы", "name": "Модернизация тепло- и водосетей", "scope": "Район", "cost": 28, "lagQuarters": 4, "fullEffects": { "C1": 18, "E2": 2 } },
+    { "id": "M14", "direction": "Сервисы", "name": "Аварийные бригады ЖКХ + раннее оповещение", "scope": "Город", "cost": 16, "lagQuarters": 1, "fullEffects": { "C1": 5, "C2": 2 } }
+  ],
+  "synergies": {
+    "rule": "Бонус применяется, если выбраны обе меры; для мер типа «Район» бонус даётся в районе первой меры пары. Бонус фиксированный и лагом не масштабируется.",
+    "pairs": [
+      { "measureIds": ["M1", "M2"], "target": "Район M1", "bonus": { "T1": 2 } },
+      { "measureIds": ["M10", "M12"], "target": "Район M10", "bonus": { "B1": 2 } },
+      { "measureIds": ["M5", "M6"], "target": "Район M5", "bonus": { "E2": 2 } }
+    ]
+  },
+  "incompatibilities": [
+    { "measureIds": ["M1", "M3"], "condition": "В любом районе", "reason": "Либо BRT, либо ЛРТ." },
+    { "measureIds": ["M4", "M7"], "condition": "В одном районе", "reason": "Конфликт за участок." },
+    { "measureIds": ["M5", "M13"], "condition": "В одном районе", "reason": "Дублирование программы." }
+  ],
+  "score": {
+    "updatedIndicatorFormula": "I'_dk = clip(I_dk + Σ(fullEffect_mk × (8 - lagQuarters_m) / 8) + synergies_dk, 0, 100)",
+    "districtFormula": "D_d = Σ(weight_k × I'_dk)",
+    "indicatorWeights": { "T1": 0.10, "T2": 0.10, "E1": 0.09, "E2": 0.11, "S1": 0.11, "S2": 0.11, "B1": 0.09, "B2": 0.09, "C1": 0.10, "C2": 0.10 },
+    "directionWeights": { "Транспорт": 0.20, "Экология": 0.20, "Соцсфера": 0.22, "Безопасность": 0.18, "Сервисы": 0.20 },
+    "cityAverageFormula": "D_avg = Σ(populationShare_d × D_d)",
+    "finalFormula": "Score = 0.7 × D_avg + 0.3 × min(D_d) - 1.0 × N_crit",
+    "cityAverageWeight": 0.7,
+    "minimumDistrictWeight": 0.3,
+    "criticalIndicatorThresholdExclusive": 40,
+    "criticalPairPenalty": 1.0,
+    "criticalPairDefinition": "N_crit — число пар «район × показатель» со значением строго меньше 40 после всех эффектов.",
+    "rationale": "70% веса идёт на общий результат по городу, 30% — на самый слабый район. Штраф за критические значения не даёт оставить провалы.",
+    "sourceBaseline": {
+      "score": 52.56,
+      "cityAverageRounded": 56.86,
+      "minimumDistrictRounded": 49.18,
+      "criticalPairs": 2,
+      "criticalPairsDescription": "S1 и S2 в Нуре"
+    }
+  },
+  "rules": {
+    "budget": 100,
+    "budgetUnit": "условные единицы",
+    "remainingBudgetBonus": false,
+    "decisionCountExact": 5,
+    "allowRepeatedMeasure": false,
+    "districtRequiredForDistrictMeasure": true,
+    "districtForbiddenForCityMeasure": true,
+    "maxMeasuresPerDirection": 2,
+    "minimumDirectionsImplied": 3,
+    "incompatibilitiesForbidden": true,
+    "invalidSelectionResult": "Score не считается; валидатор возвращает причину.",
+    "decisionOrderMatters": false
+  },
+  "examples": {
+    "scenario": {
+      "decisions": [
+        { "measureId": "M7", "district": "Нура" },
+        { "measureId": "M8", "district": "Нура" },
+        { "measureId": "M10", "district": "Нура" },
+        { "measureId": "M12", "district": null },
+        { "measureId": "M5", "district": "Сарыарка" }
+      ],
+      "cost": 95,
+      "sourceApproximateScore": 56.5,
+      "sourceApproximateGain": 4.0,
+      "sourceSynergy": "M10 + M12",
+      "note": "Оценка из исходного документа приблизительная: перепроверьте кодом."
+    },
+    "cheapestValidSet": {
+      "measureIds": ["M9", "M11", "M10", "M12", "M4"],
+      "cost": 61
+    }
+  },
+  "aiRole": "LLM получает результат расчёта (дельты по районам и показателям, вклад каждой меры) и объясняет его, сравнивает наборы, советует. Числа он не считает и не придумывает."
+}

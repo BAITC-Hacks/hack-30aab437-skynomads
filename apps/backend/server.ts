@@ -1,4 +1,5 @@
 import path from 'path';
+import { existsSync } from 'node:fs';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
@@ -7,9 +8,6 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import * as helmet from 'helmet';
 import * as rateLimitPackage from 'express-rate-limit';
-import authRouter from './features/auth/router.js';
-import blogRouter from './features/blog/router.js';
-import mediaRouter from './features/media/router.js';
 import simulatorRouter from './features/simulator/router.js';
 import { errorHandler } from './shared/index.js';
 
@@ -70,7 +68,7 @@ app.use(
   helmet.contentSecurityPolicy({
     useDefaults: true,
     directives: {
-      'x-content-type-options': ['nosniff'],
+      'upgrade-insecure-requests': null,
     },
   }),
 );
@@ -80,40 +78,49 @@ app.use(helmet.hidePoweredBy());
 const limiter = rateLimitMiddleware({
   windowMs: 10 * 60 * 1000, // 10 mins
   max: 100,
+  message: { error: 'Слишком много запросов. Подождите и повторите попытку.' },
 });
 app.use(limiter);
-app.set('trust proxy', 1);
+if (process.env.VERCEL) app.set('trust proxy', 1);
 
 // Enable CORS
 app.use(cors());
 
 // Mount routes
-app.use('/api/auth', authRouter);
-app.use('/media', mediaRouter);
-app.use('/api/blog', blogRouter);
 app.use('/api/simulator', simulatorRouter);
 
 app.use(errorHandler);
 
-// Serve frontend
-app.use(express.static('public'));
-
-// Handle 404 errors
-app.use((req: Request, res: Response) => {
-  res.status(404).sendFile('404.html', { root: path.join(rootDir, 'public') });
+/* Sample boilerplate routes are intentionally not exposed by the MVP. */
+app.use(['/api', '/media'], (_req: Request, res: Response) => {
+  res.status(404).json({ error: 'Маршрут не найден.' });
 });
 
-app.get(/(.*)/, (req: Request, res: Response) =>
-  res.sendFile('index.html', { root: path.join(rootDir, 'public') }),
-);
+/* After yarn build, the same origin serves both the SPA and API. */
+const frontendBuild = path.resolve(rootDir, '../frontend/build');
+if (existsSync(path.join(frontendBuild, 'index.html'))) {
+  app.use(express.static(frontendBuild));
+  app.get(/.*/, (_req: Request, res: Response) => {
+    res.sendFile('index.html', { root: frontendBuild });
+  });
+}
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ error: 'Маршрут не найден. Для интерфейса выполните yarn build или yarn start.' });
+});
 
 const PORT = Number(process.env.PORT ?? 7000);
 
 const server = process.env.VERCEL
   ? null
   : app.listen(PORT, () =>
-      console.log(`Server running on port ${PORT}`.yellow),
+      console.log(`Server running on port ${(server?.address() as { port?: number } | null)?.port ?? PORT}`.yellow),
     );
+server?.on('error', (error: NodeJS.ErrnoException) => {
+  console.error(error.code === 'EADDRINUSE'
+    ? `Порт ${PORT} уже занят. Остановите прежний сервер или измените PORT.`
+    : 'Не удалось запустить сервер. Проверьте PORT и окружение.');
+  process.exit(1);
+});
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason: unknown) => {

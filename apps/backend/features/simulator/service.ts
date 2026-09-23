@@ -55,7 +55,7 @@ export interface ScenarioResult {
   baselineScore: number;
   criticalPairs: number;
   districts: DistrictResult[];
-  measures: { name: string; district: string | null; effects: Record<string, number> }[];
+  measures: { name: string; district: string | null; cost: number; lagQuarters: number; effects: Record<string, number> }[];
   synergies: string[];
 }
 
@@ -183,6 +183,8 @@ const compute = (decisions: Decision[]): ScenarioResult => {
       return {
         name: measure.name,
         district: decision.district,
+        cost: measure.cost,
+        lagQuarters: measure.lagQuarters,
         effects: Object.fromEntries(Object.entries(measure.fullEffects).map(([code, effect]) =>
           [code, effect * (dataset.simulation.horizonQuarters - measure.lagQuarters)
             / dataset.simulation.horizonQuarters])),

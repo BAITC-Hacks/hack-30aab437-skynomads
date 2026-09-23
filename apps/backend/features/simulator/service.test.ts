@@ -66,3 +66,35 @@ test('a value of 40 is safe but a negative side effect can create a new critical
   assert.equal(result.districts.find((district) => district.name === 'Нура')?.indicators.S1, 40.625);
   assert.equal(result.criticalPairs, 2);
 });
+
+test('budget exactly 100, all synergies and same-district utility conflict', () => {
+  const hundred = [
+    { measureId: 'M1', district: 'Нура' }, { measureId: 'M7', district: 'Нура' },
+    { measureId: 'M8', district: 'Нура' }, { measureId: 'M13', district: 'Алматы' },
+    { measureId: 'M11', district: 'Алматы' },
+  ];
+  assert.equal(evaluateScenario(hundred).cost, 100);
+  const transport = evaluateScenario([
+    { measureId: 'M1', district: 'Нура' }, { measureId: 'M2', district: null },
+    { measureId: 'M4', district: 'Есиль' }, { measureId: 'M9', district: 'Нура' },
+    { measureId: 'M10', district: 'Алматы' },
+  ]);
+  assert.ok(transport.synergies.includes('M1 + M2'));
+  assert.equal(transport.districts.find((d) => d.name === 'Нура')?.changes.T1, 9.5);
+  const ecology = evaluateScenario([
+    { measureId: 'M5', district: 'Сарыарка' }, { measureId: 'M6', district: null },
+    { measureId: 'M9', district: 'Нура' }, { measureId: 'M10', district: 'Алматы' },
+    { measureId: 'M12', district: null },
+  ]);
+  assert.ok(ecology.synergies.includes('M5 + M6'));
+  assert.equal(ecology.districts.find((d) => d.name === 'Сарыарка')?.changes.E2, 12.25);
+  const utilities = [
+    { measureId: 'M5', district: 'Сарыарка' }, { measureId: 'M13', district: 'Алматы' },
+    { measureId: 'M9', district: 'Нура' }, { measureId: 'M10', district: 'Алматы' },
+    { measureId: 'M12', district: null },
+  ];
+  assert.doesNotThrow(() => evaluateScenario(utilities));
+  assert.throws(() => evaluateScenario(utilities.map((item) => item.measureId === 'M13'
+    ? { ...item, district: 'Сарыарка' } : item)), /несовместимы/);
+  assert.notEqual(transport.score, ecology.score);
+});

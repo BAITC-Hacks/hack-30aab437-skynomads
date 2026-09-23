@@ -22,6 +22,8 @@ Copied `react-app` boilerplate: Node.js >=22, Yarn Classic 1.x workspaces; React
 - `package.json`, `yarn.lock` — Yarn workspace scripts and locked dependencies.
 - `apps/frontend/`, `apps/backend/` — copied SPA/API boilerplate, including sample features and per-app READMEs.
 - `apps/frontend/public/initiatives/` — 14 user-provided PNG illustrations and optimized WebP thumbnails; Webpack bundles these local assets for the catalog.
+- `CharacterPortrait.tsx` (simulator feature) — user-provided mayor/advisor portraits with local optimized WebP and PNG fallback. `WarningToast.tsx` — dismissible, timed warnings hosted inside the active native dialog or document body.
+- `apps/frontend/app/shared/assets/fonts/` — local Outfit WOFF2 for Latin/numerals and Inter WOFF2 for Cyrillic; UI weights 300/400/500, SIL OFL license included.
 - `apps/frontend/app/features/simulator/ScenarioDashboard.tsx` — real direction averages, Score ring/legend and before/after chart; `InitiativeThumbnail.tsx` — local thumbnail loading with fallback to original PNG.
 - `apps/frontend/app/features/simulator/mapInitiatives.ts`, `cityHighlights.ts` — current choices mapped to illustrative district sites and a disposable Three.js highlight layer; citywide measures appear in all five districts. `CityMap.tsx` projects interactive measure badges without recreating the scene.
 - `docs/PRD.md` — reviewed track PRD and evaluation criteria.
@@ -39,20 +41,22 @@ React router/layout and Express routers/middleware provide entry points. `apps/b
 
 ## Commands
 
-- Dev: `yarn start` (runs root `dev:frontend` and `dev:backend` scripts).
-- Test: `yarn workspace @react-app/backend test` (seven simulator domain/AI/data-consistency tests passed).
+- Dev: `yarn start` (runs root `dev:frontend` and `dev:backend` scripts, localhost:3000 + :7000).
+- Built app: `yarn serve` after build (Express serves SPA + API on localhost:7000).
+- Test: `yarn test` (10 domain/AI/data-consistency/HTTP tests passed).
 - Typecheck: `yarn typecheck` (passed after frozen lockfile install).
 - Lint: UNKNOWN — no lint script in copied manifests.
 - Build: `yarn build` (passed after frozen lockfile install).
-- Verify: `yarn typecheck` and `yarn build` are the currently applicable checks; no dedicated Verify script exists.
+- Verify: `yarn verify` (tests → typecheck → build).
+- Smoke: `yarn smoke` (built app, no paid call); `yarn smoke --live` (one real OpenAI request).
 
 ## Current State
 
-Repository includes source and per-app Vercel configuration but no deployed environment or CI workflow was found. Simulator implementation has passing tests/build, API smoke checks and a successful live OpenAI response. An interactive browser walkthrough now verifies the demo, invalid selection, result, dialogs, all image categories and true 390px responsive layout. Independent clean-clone launch remains unverified. Original ODT files were removed in team commit `1d3a1dd` after conversion.
+Submission preparation is recorded in `docs/submission.md`: tests/typechecks/build, clean-directory dependency installation, built-app browser walkthrough and live OpenAI response passed. Sample auth/blog/media routes are no longer mounted; their source remains. No public deployment or CI is claimed. Independent teammate confirmation and final publication remain pending. Original ODT files were removed in team commit `1d3a1dd` after conversion.
 
 ## Current Milestone
 
-UNKNOWN — no approved build plan yet.
+Hackathon MVP submission verification; see `build-plan.md` and `docs/submission.md`.
 
 ## Constraints
 

@@ -4,7 +4,7 @@
 FEATURE
 
 ## Status
-In Progress
+Verify
 
 ## Source
 `docs/specs/001-city-scenario-feature.md` and `docs/specs/001-city-scenario-implementation.md`, approved split of `docs/PRD.md` (SHA-256 `8bf43c4c9a6e37ba10e4e1b14951bb0382c1f96b8125af41311e4f387cea8ee5`). Dataset: `docs/data-set.json`.
@@ -31,7 +31,7 @@ Optional comparison, events, presentations, and product extensions.
 - 2026-09-23: пользователь выбрал визуальный стиль игрового городского dashboard для текущего MVP; вместо отсутствующего отдельного арта использовать явно условную схему районов CSS/SVG. Таймлайн, события, погода и остальные возможности референса не входят в эту задачу.
 
 ## Open Questions
-- Live API call verified using a locally configured, Git-ignored backend `.env`; full browser walkthrough and independent clean launch remain to be checked.
+- Independent teammate README run and final publication/video submission remain pending. Automated clean-directory install and full built-app browser walkthrough passed; see `docs/submission.md` for the authoritative latest acceptance matrix.
 
 ## Implementation Plan
 - [x] Implement and test deterministic dataset-backed validation and Score in `apps/backend/features/simulator/`; load runtime `apps/backend/db.json`, checked against canonical `docs/data-set.json`.
@@ -41,11 +41,18 @@ Optional comparison, events, presentations, and product extensions.
 - [x] Переработать фронтенд в тёмный dashboard с условной картой районов, реальными мерами и бюджетом, сохранив существующий end-to-end выбор → Score → AI.
 - [x] Финальная подгонка UI по прототипу: пропорции верхних/нижних панелей, типографика карточек, легенда Score, состояния каталога и диалоги. Проверен интерактивный сценарий и реальные viewport 1536/390 через браузер.
 - [x] Добавить привязанную к choices подсветку участков/зданий в Three.js, проецируемые значки и карточку выбранной инициативы. Проверены выбор, смена района, городские меры, удаление, сброс, вращение камеры и отсутствие WebGL в браузере на desktop/mobile.
-- [ ] Подключить подготовленные пользователем akim.png и три advisor-*.png к карточкам. Сохранить исходники, создать лёгкие WebP-копии, проверить кадрирование и переключение советников на desktop/mobile.
-- [ ] По уточнению пользователя заменить основную гарнитуру на Outfit, установить базовый вес 300, выделения 400 и максимум 500. Подключить локальный Inter 300–500 как кириллический fallback (у Outfit нет кириллицы), проверить фактические гарнитуры и веса в браузере.
-- [ ] Complete the UI walkthrough and independent clean run following README; capture observable evidence before sign-off.
+- [x] Подключить подготовленные пользователем akim.png и три advisor-*.png к карточкам. Исходники сохранены, лёгкие WebP-копии созданы; кадрирование и переключение советников проверены на desktop/mobile.
+- [x] Основная гарнитура Outfit, базовый вес 300, выделения 400 и максимум 500. Локальный Inter 300–500 используется для кириллицы (у Outfit нет этих глифов); фактические гарнитуры и веса проверены в браузере.
+- [x] Добавить предупреждающие тосты для неполного плана, превышения бюджета, неназначенного района и ошибок API/AI. Проверены ручное закрытие, исчезновение по таймеру, пауза при фокусе и видимость внутри нативных диалогов; постоянная ошибка формы сохраняется.
+- [x] Complete automated UI walkthrough and clean-directory install following README; capture observable evidence.
+- [x] Submission audit: resolve FIND-001–004; validate required PRD behaviors, safe errors, supported launch and clean-directory install; prepare reproducible demo and final acceptance report. No publication performed.
+- [ ] Independent teammate repeats README from the final published revision and records demo/error verification; team submits repository/video (deploy only if required by track).
 
 ## Verification Evidence
+- **Latest submission gate (2026-09-23):** `yarn verify` PASS (10 tests, both typechecks, build); `yarn smoke` PASS; `yarn smoke --live` PASS. A clean worktree snapshot without dependencies/builds/.env/.agents installed with `yarn install --frozen-lockfile --non-interactive`, then passed verify/smoke. Built server from that folder passed browser demo on 1536×1024 and 390×844, with real AI, Score 56.54, cost 95, remaining 5, invalid-plan warning and all 14 images. Existing local key injected only into child-process environment for the live check, never exported. See `docs/submission.md`. Earlier notes below are historical and superseded where they say checks are unavailable.
+- Audit quality/security: FIND-001–004 CLOSED with test/runtime evidence; P3 FIND-005 remains OPEN as documented asset-size limitation. `git ls-files`/history-path checks found no tracked .env/private-key files; tracked text credential-pattern scan found no matches. Independent review and public deployment not claimed.
+- Портреты/типографика/тосты: браузерный сценарий `PORTRAIT_FONT_TOAST_QA=1` в локальном `ui-refinement-qa.cjs` PASS. Проверены четыре WebP-портрета (192×256), следующие/предыдущие советники и точки переключения. Computed weights текста — только 300/400/500; body=300, strong=400, h1=500. CDP `CSS.getPlatformFontsForNode` подтвердил локальные Outfit и Inter для заголовка с русским текстом и цифрой. Все запросы шрифтов локальные. Тосты: неполный план, неназначенный район, перерасход бюджета и реальная серверная ошибка направления; кнопка закрытия нажата через координаты, таймер 8 с и пауза при фокусе проверены; закрытие тоста не убирает inline-ошибку. Снимки desktop 1536×1024 и mobile 390×844 осмотрены, горизонтального переполнения нет. Новый AI-сбой отдельно не провоцировался; обработчик `analysisError` подключён к тому же предупреждению.
+- После этих правок `yarn typecheck` и `yarn build` PASS. Лишние начертания 600/700 и preload старых TTF удалены из подключения; новые WOFF2 и OFL включены в сборку. Существующие предупреждения о размере Three.js/PNG сохраняются.
 - Подсветка инициатив — PASS: браузерный сценарий `MAP_HIGHLIGHTS_ONLY=1` в локальном `ui-refinement-qa.cjs` проверил отсутствие отметки до назначения района, M7/Нура, несколько районных мер, M12 во всех пяти районах, переназначение M7 в Есиль, удаление районной/городской меры и сброс. В демо видны все 9 отметок (4 районные + 5 городских); Нура показывает 4 действующие на район меры, Сарыарка 2. DOM canvas сохраняет идентичность при обновлении, положение значков меняется вместе с поворотом камеры. 390px без переполнения; при отключённом WebGL все 9 мер доступны кнопками. Осмотрены снимки `refined-highlight-*.png`; значение Score до расчёта не изменяется от подсветки.
 - После подсветки: `yarn typecheck`, `yarn build`, `yarn workspace @react-app/backend test` (7/7) PASS; `git diff --check` без ошибок. Существующие предупреждения размера бандла/PNG сохраняются.
 - Финальная UI-проверка через Chrome DevTools Protocol / headless Edge: 1536×1024 desktop и 390×844 mobile (через device emulation, без прежнего ограничения размера окна). Проверены пустой план с видимой ошибкой, загрузка демо-набора, пять заполненных слотов, закрытие через Escape, реальный API/AI-ответ, Score 56.54 / стоимость 95 / остаток 5, таблица десяти показателей и пять категорий каталога (3/3/3/2/3 карточки). Все растровые миниатюры загрузились; document.scrollWidth = 390 при viewport 390. Скриншоты начального экрана, результата, ошибки и mobile-диалога осмотрены. Проверочный скрипт и снимки находятся в локальной временной папке OpenCode (`ui-refinement-qa.cjs`, `refined-*.png`). Это проверка рабочего дерева, не независимый чистый запуск.

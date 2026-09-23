@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
   ArrowRight, ArrowUpRight, Check, ChartNoAxesColumnIncreasing, FileText,
@@ -8,6 +8,8 @@ import {
 import { CityMap } from '@/features/simulator/CityMap';
 import { InitiativeThumbnail } from '@/features/simulator/InitiativeThumbnail';
 import { CharacterPortrait } from '@/features/simulator/CharacterPortrait';
+import { WarningToast } from '@/features/simulator/WarningToast';
+import type { WarningNotice } from '@/features/simulator/WarningToast';
 import { ScenarioDashboard, directionLabels } from '@/features/simulator/ScenarioDashboard';
 import { getMapInitiatives } from '@/features/simulator/mapInitiatives';
 import { loadCatalog, submitScenario } from '@/features/simulator/api';
@@ -48,11 +50,18 @@ const Home = () => {
   const mapInitiatives = useMemo(() => catalog
     ? getMapInitiatives(choices, catalog.measures, catalog.districts) : [], [choices, catalog]);
   const inspected = mapInitiatives.find((initiative) => initiative.key === focusedInitiative);
+  const [warning, setWarning] = useState<WarningNotice | null>(null);
+  const warningId = useRef(0);
+  const warn = (message: string) => setWarning({ id: ++warningId.current, message });
+  const dismissWarning = useCallback(() => setWarning(null), []);
 
   const refreshCatalog = async () => {
     setLoading(true); setError('');
     try { setCatalog(await loadCatalog()); }
-    catch { setError('Не удалось загрузить каталог. Проверьте подключение к серверу.'); }
+    catch {
+      const message = 'Не удалось загрузить каталог. Проверьте подключение к серверу.';
+      setError(message); warn(message);
+    }
     finally { setLoading(false); }
   };
   useEffect(() => { void refreshCatalog(); }, []);
@@ -65,7 +74,11 @@ const Home = () => {
 
   const updateChoice = (index: number, choice: Decision) => {
     if (submitting) return;
-    setChoices((current) => current.map((item, position) => position === index ? choice : item));
+    dismissWarning();
+    const next = choices.map((item, position) => position === index ? choice : item);
+    setChoices(next);
+    const cost = next.reduce((sum, item) => sum + (catalog?.measures.find((measure) => measure.id === item.measureId)?.cost ?? 0), 0);
+    if (catalog && cost > catalog.budget) warn(`Бюджет превышен на ${cost - catalog.budget} ед. Уберите или замените одну из инициатив.`);
     const measure = catalog?.measures.find((item) => item.id === choice.measureId);
     const district = measure?.scope === 'Город' ? activeDistrict ?? catalog?.districts[0].name : choice.district;
     setFocusedInitiative(measure && district ? `${measure.id}:${district}` : null);
@@ -82,24 +95,37 @@ const Home = () => {
     const measure = catalog.measures.find((item) => item.id === measureId);
     if (slot === -1 || !measure) return;
     updateChoice(slot, { measureId, district: measure.scope === 'Город' ? null : activeDistrict ?? '' });
-    if (measure.scope === 'Район' && !activeDistrict) setPanel('plan');
+    if (measure.scope === 'Район' && !activeDistrict) {
+      warn('Выберите район для добавленной инициативы в плане города.');
+      setPanel('plan');
+    }
   };
   const calculate = async () => {
     if (submitting) return;
     if (selectedCount !== 5) {
-      setError('Выберите ровно 5 мероприятий. Добавьте недостающие инициативы из каталога.');
+      const message = 'Выберите ровно 5 мероприятий. Добавьте недостающие инициативы из каталога.';
+      setError(message); warn(message);
       setPanel('plan');
       return;
     }
-    setSubmitting(true); setResult(null); setError('');
-    try { setResult(await submitScenario(choices)); setPanel('analysis'); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Не удалось рассчитать сценарий.'); setPanel('plan'); }
+    setSubmitting(true); setResult(null); setError(''); dismissWarning();
+    try {
+      const response = await submitScenario(choices);
+      setResult(response); setPanel('analysis');
+      if (response.analysisError) warn(response.analysisError);
+    }
+    catch (cause) {
+      let message = cause instanceof Error ? cause.message : 'Не удалось рассчитать сценарий.';
+      if (cause instanceof TypeError) message = 'Не удалось связаться с сервером. Попробуйте ещё раз.';
+      setError(message); warn(message); setPanel('plan');
+    }
     finally { setSubmitting(false); }
   };
   const reset = () => {
     if (submitting) return;
     setChoices(emptyChoices()); setResult(null); setError('');
     setFocusedInitiative(null);
+    dismissWarning();
   };
   const closePanel = () => setPanel('map');
   const dialogProps = {
@@ -109,6 +135,7 @@ const Home = () => {
 
   return (
     <main className="command">
+      <WarningToast notice={warning} onDismiss={dismissWarning} panel={panel} />
       <header className="command__header">
         <div className="command__identity">
           <div className="command__mark" aria-hidden="true"><Building2 size={45} strokeWidth={1.1} /><i /></div>
@@ -222,6 +249,7 @@ const Home = () => {
           <button type="button" className="plan__example" disabled={submitting} onClick={() => {
             setChoices(EXAMPLE.map((item) => ({ ...item }))); setActiveDistrict('Нура'); setResult(null); setError('');
             setFocusedInitiative('M7:Нура');
+            dismissWarning();
           }}>Загрузить демо-набор <ArrowRight size={16} /></button>
           <form onSubmit={(event) => { event.preventDefault(); void calculate(); }}>
             {error && <p className="sim-panel__error" role="alert">{error}</p>}

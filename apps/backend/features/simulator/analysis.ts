@@ -1,9 +1,8 @@
+import { getCatalog } from './service.js';
 import type { ScenarioResult } from './service.js';
 
-interface OpenAIResponse {
-  status?: string;
-  output?: { type?: string; content?: { type?: string; text?: string }[] }[];
-}
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 export const explainScenario = async (result: ScenarioResult): Promise<string> => {
   const key = process.env.OPENAI_API_KEY?.trim();
@@ -19,6 +18,10 @@ export const explainScenario = async (result: ScenarioResult): Promise<string> =
       [district, districtMeasures.filter((measure) => measure.district === district).length]),
   );
   const facts = {
+    budget: getCatalog().budget,
+    cost: result.cost,
+    remaining: result.remaining,
+    indicatorDefinitions: getCatalog().indicators,
     score: Number(result.score.toFixed(2)),
     baselineScore: Number(result.baselineScore.toFixed(2)),
     strongestImprovement: { district: strongest.name, delta: Number(strongest.delta.toFixed(2)) },
@@ -59,12 +62,17 @@ export const explainScenario = async (result: ScenarioResult): Promise<string> =
       : 'AI-сервис вернул ошибку. Попробуйте позже.');
   }
 
-  const data = await response.json() as OpenAIResponse;
-  const text = data.output?.filter((item) => item.type === 'message')
-    .flatMap((item) => item.content ?? [])
-    .filter((part) => part.type === 'output_text')
-    .map((part) => part.text ?? '').join('\n').trim();
-  if (data.status !== 'completed' || !text) {
+  let data: unknown;
+  try { data = await response.json(); }
+  catch { throw new Error('AI-сервис вернул некорректный ответ. Попробуйте позже.'); }
+  if (!isRecord(data) || data.status !== 'completed' || !Array.isArray(data.output)) {
+    throw new Error('AI-сервис не вернул готовое объяснение. Попробуйте позже.');
+  }
+  const text = data.output.filter(isRecord).filter((item) => item.type === 'message')
+    .flatMap((item) => Array.isArray(item.content) ? item.content : [])
+    .filter(isRecord).filter((part) => part.type === 'output_text' && typeof part.text === 'string')
+    .map((part) => part.text).join('\n').trim();
+  if (!text) {
     throw new Error('AI-сервис не вернул готовое объяснение. Попробуйте позже.');
   }
   return text;

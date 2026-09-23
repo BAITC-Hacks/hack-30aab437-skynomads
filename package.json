@@ -11,12 +11,17 @@
     "dev:frontend": "npm run dev --workspace @react-app/frontend",
     "dev:backend": "npm run dev --workspace @react-app/backend",
     "build": "npm run build --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspace @react-app/backend",
+    "verify": "yarn test && yarn typecheck && yarn build",
+    "serve": "npm run start --workspace @react-app/backend",
+    "smoke": "node scripts/smoke.mjs"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"
   },
   "engines": {
-    "node": ">=22"
-  }
+    "node": ">=22.18.0"
+  },
+  "packageManager": "yarn@1.22.22"
 }

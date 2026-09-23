@@ -75,7 +75,7 @@ module.exports = (env, argv) => {
           },
         },
         {
-          test: /\.(woff|ttf|eot)$/i,
+          test: /\.(woff2?|ttf|eot)$/i,
           type: 'asset/resource',
           generator: {
             filename: 'static/media/[name][ext]',
@@ -124,6 +124,10 @@ module.exports = (env, argv) => {
       }),
       new CopyPlugin({
         patterns: [
+          {
+            from: path.resolve(__dirname, 'app', 'shared', 'assets', 'fonts', 'OFL.txt'),
+            to: path.resolve(__dirname, 'build', 'static', 'media', 'OFL.txt'),
+          },
           {
             from: path.resolve(__dirname, 'public', 'initiatives'),
             to: path.resolve(__dirname, 'build', 'initiatives'),

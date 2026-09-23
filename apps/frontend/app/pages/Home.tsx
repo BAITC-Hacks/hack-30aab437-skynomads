@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
   ArrowRight, ArrowUpRight, Check, ChartNoAxesColumnIncreasing, FileText,
-  ListChecks, Map, Play, RotateCcw, Settings, Sparkles, Sun, Users, Wallet, X,
-  Building2, Info, ChevronLeft, ChevronRight, CircleHelp,
+  ListChecks, Map, Play, RotateCcw, Settings, Sparkles, Sun, Wallet, X,
+  Building2, Info, ChevronLeft, ChevronRight, CircleHelp, MapPin,
 } from 'lucide-react';
 import { CityMap } from '@/features/simulator/CityMap';
 import { InitiativeThumbnail } from '@/features/simulator/InitiativeThumbnail';
+import { CharacterPortrait } from '@/features/simulator/CharacterPortrait';
 import { ScenarioDashboard, directionLabels } from '@/features/simulator/ScenarioDashboard';
+import { getMapInitiatives } from '@/features/simulator/mapInitiatives';
 import { loadCatalog, submitScenario } from '@/features/simulator/api';
 import type { Catalog, Decision, Scenario } from '@/features/simulator/api';
 import './Home.scss';
@@ -24,6 +26,11 @@ const tips = [
   'Не больше двух мер одного направления. Некоторые инициативы несовместимы — сервер проверит ваш план.',
   'Индекс учитывает и весь город, и самый слабый район. Показатели ниже 40 уменьшают итоговый балл.',
 ];
+const advisors = [
+  { character: 'advisor-social', label: 'Советник по социальной инфраструктуре' },
+  { character: 'advisor-transport', label: 'Советник по транспорту' },
+  { character: 'advisor-environment', label: 'Советник по экологии' },
+] as const;
 
 const Home = () => {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
@@ -36,6 +43,11 @@ const Home = () => {
   const [submitting, setSubmitting] = useState(false);
   const [panel, setPanel] = useState<Panel>('map');
   const [tipIndex, setTipIndex] = useState(0);
+  const advisor = advisors[tipIndex];
+  const [focusedInitiative, setFocusedInitiative] = useState<string | null>(null);
+  const mapInitiatives = useMemo(() => catalog
+    ? getMapInitiatives(choices, catalog.measures, catalog.districts) : [], [choices, catalog]);
+  const inspected = mapInitiatives.find((initiative) => initiative.key === focusedInitiative);
 
   const refreshCatalog = async () => {
     setLoading(true); setError('');
@@ -54,6 +66,9 @@ const Home = () => {
   const updateChoice = (index: number, choice: Decision) => {
     if (submitting) return;
     setChoices((current) => current.map((item, position) => position === index ? choice : item));
+    const measure = catalog?.measures.find((item) => item.id === choice.measureId);
+    const district = measure?.scope === 'Город' ? activeDistrict ?? catalog?.districts[0].name : choice.district;
+    setFocusedInitiative(measure && district ? `${measure.id}:${district}` : null);
     setResult(null); setError('');
   };
   const selectedCount = choices.filter((choice) => choice.measureId).length;
@@ -84,6 +99,7 @@ const Home = () => {
   const reset = () => {
     if (submitting) return;
     setChoices(emptyChoices()); setResult(null); setError('');
+    setFocusedInitiative(null);
   };
   const closePanel = () => setPanel('map');
   const dialogProps = {
@@ -129,19 +145,21 @@ const Home = () => {
           {!catalog && !loading && <div className="command__load-error" role="alert"><p>{error}</p><button type="button" onClick={() => void refreshCatalog()}>Повторить загрузку</button></div>}
           {catalog && <>
             <div className="command__stage">
-              <CityMap districts={catalog.districts} results={result?.districts} activeDistrict={activeDistrict} onSelect={setActiveDistrict} />
+              <CityMap districts={catalog.districts} results={result?.districts} activeDistrict={activeDistrict} onSelect={setActiveDistrict}
+                initiatives={mapInitiatives} focusedKey={inspected?.key ?? null}
+                onInspect={(initiative) => { setFocusedInitiative(initiative.key); setActiveDistrict(initiative.district); }} />
               <aside className="mayor-card" aria-label="Ваша задача">
-                <div className="mayor-card__portrait" aria-hidden="true"><Building2 size={48} strokeWidth={1.1} /><small>АКИМ</small></div>
+                <div className="mayor-card__portrait"><CharacterPortrait character="akim" alt="Аким — персонаж симулятора" /></div>
                 <p><strong>Вы — аким Астаны.</strong>У вас 5 ключевых решений и ограниченный бюджет. Развивайте город, учитывайте потребности жителей и создавайте лучшее будущее!</p>
               </aside>
               <aside className="city-advisor" aria-label="Подсказка по сценарию">
-                <div className="city-advisor__content"><div className="city-advisor__avatar"><Users size={30} strokeWidth={1.3} /></div>
-                  <div><small>Городской советник</small><strong>{activeDistrict ? `В фокусе: ${activeDistrict}` : 'Каждое решение важно'}</strong><p>{tips[tipIndex]}</p></div>
+                <div className="city-advisor__content"><div className="city-advisor__avatar"><CharacterPortrait key={advisor.character} character={advisor.character} alt={advisor.label} /></div>
+                  <div><small>{advisor.label}</small><strong>{activeDistrict ? `В фокусе: ${activeDistrict}` : 'Каждое решение важно'}</strong><p>{tips[tipIndex]}</p></div>
                 </div>
                 <div className="city-advisor__controls">
-                  <button type="button" onClick={() => setTipIndex((tipIndex + tips.length - 1) % tips.length)} aria-label="Предыдущая подсказка"><ChevronLeft size={18} /></button>
-                  <div className="city-advisor__dots">{tips.map((_, index) => <button key={index} type="button" className={tipIndex === index ? 'is-active' : ''} aria-label={`Подсказка ${index + 1}`} aria-pressed={tipIndex === index} onClick={() => setTipIndex(index)} />)}</div>
-                  <button type="button" onClick={() => setTipIndex((tipIndex + 1) % tips.length)} aria-label="Следующая подсказка"><ChevronRight size={18} /></button>
+                  <button type="button" onClick={() => setTipIndex((tipIndex + tips.length - 1) % tips.length)} aria-label="Предыдущий советник"><ChevronLeft size={18} /></button>
+                  <div className="city-advisor__dots">{advisors.map((item, index) => <button key={item.character} type="button" className={tipIndex === index ? 'is-active' : ''} aria-label={item.label} aria-pressed={tipIndex === index} onClick={() => setTipIndex(index)} />)}</div>
+                  <button type="button" onClick={() => setTipIndex((tipIndex + 1) % tips.length)} aria-label="Следующий советник"><ChevronRight size={18} /></button>
                 </div>
               </aside>
 
@@ -160,19 +178,35 @@ const Home = () => {
                       <div className="initiative__action"><strong>{measure.cost} <small>ед.</small></strong><button type="button"
                         disabled={submitting || isSelected || selectedCount === 5} onClick={() => addMeasure(measure.id)}>
                         {isSelected ? <><Check size={13} /> В плане</> : 'Выбрать'}
-                      </button></div>
+                      </button>{isSelected && <button type="button" className="initiative__locate" onClick={() => {
+                        const placement = mapInitiatives.find((item) => item.measure.id === measure.id && item.district === activeDistrict)
+                          ?? mapInitiatives.find((item) => item.measure.id === measure.id);
+                        if (placement) { setFocusedInitiative(placement.key); setActiveDistrict(placement.district); }
+                        else setPanel('plan');
+                      }}><MapPin size={11} /> На карте</button>}</div>
                     </article>;
                   })}
                 </div>
                 <button type="button" className="initiative__plan" onClick={() => setPanel('plan')}><ListChecks size={16} /> План города <span>{selectedCount} / 5</span><ArrowRight size={16} /></button>
               </aside>
 
-              <div className="scenario-card">
+              <div className={`scenario-card${inspected ? ' scenario-card--initiative' : ''}`}>
+                {inspected ? <>
+                  <button type="button" className="scenario-card__close" aria-label="Закрыть карточку инициативы" onClick={() => setFocusedInitiative(null)}><X size={15} /></button>
+                  <div className="scenario-card__heading"><InitiativeThumbnail key={inspected.measure.id} measureId={inspected.measure.id} />
+                    <div><strong>{inspected.measure.name}</strong><small>{inspected.measure.scope === 'Город' ? `Весь город · участок в районе ${inspected.district}` : inspected.district}</small></div>
+                  </div>
+                  <span className="scenario-card__planned"><Check size={12} /> В плане · {inspected.measure.id}</span>
+                  <dl className="scenario-card__facts"><div><dt>Стоимость меры</dt><dd>{inspected.measure.cost} ед.</dd></div><div><dt>Начало эффекта</dt><dd>Через {inspected.measure.lagQuarters} кв.</dd></div></dl>
+                  <p>Подсвечен условный участок{inspected.measure.scope === 'Город' ? ' в каждом районе' : ' в выбранном районе'}. Эффект появится после расчёта сценария.</p>
+                  <button type="button" className="scenario-card__edit" onClick={() => setPanel('plan')}>Изменить план<ArrowUpRight size={16} /></button>
+                </> : <>
                 <div className="scenario-card__heading"><div className="scenario-card__icon"><ListChecks size={23} /></div><div><strong>Ваш план развития</strong><small>{activeDistrict ?? 'Все районы'} · горизонт 8 кварталов</small></div></div>
                 <div className="scenario-card__progress"><span>Выбрано инициатив</span><b>{selectedCount} из 5</b></div>
                 <div className="scenario-card__track" aria-hidden="true"><span style={{ width: `${selectedCount * 20}%` }} /></div>
                 <p>{result ? `Сценарий рассчитан. Остаток бюджета: ${result.remaining} ед.` : 'Распределите бюджет между пятью инициативами.'}</p>
                 <button type="button" onClick={() => setPanel(result ? 'analysis' : 'plan')}>{result ? 'Открыть AI-отчёт' : 'Перейти к решениям'}<ArrowUpRight size={16} /></button>
+                </>}
               </div>
             </div>
             <ScenarioDashboard catalog={catalog} result={result} />
@@ -187,6 +221,7 @@ const Home = () => {
           <header className="sim-panel__header"><span className="sim-panel__eyebrow">ВАШИ РЕШЕНИЯ</span><h2 id="plan-heading">План города</h2><p>Пять разных мер · не больше двух в одном направлении.</p></header>
           <button type="button" className="plan__example" disabled={submitting} onClick={() => {
             setChoices(EXAMPLE.map((item) => ({ ...item }))); setActiveDistrict('Нура'); setResult(null); setError('');
+            setFocusedInitiative('M7:Нура');
           }}>Загрузить демо-набор <ArrowRight size={16} /></button>
           <form onSubmit={(event) => { event.preventDefault(); void calculate(); }}>
             {error && <p className="sim-panel__error" role="alert">{error}</p>}
@@ -226,6 +261,7 @@ const Home = () => {
           <ol><li>Выберите район на карте и инициативу в каталоге.</li><li>Соберите пять разных мер: максимум две из одного направления.</li><li>Уложитесь в бюджет 100 условных единиц.</li><li>Откройте «Решения», проверьте районы и рассчитайте результат.</li></ol>
           <p><Info size={16} /> Карта — условный 3D-макет. Все показатели синтетические, это не прогноз для реальной Астаны.</p>
           <p>Вращайте карту перетаскиванием; приближайте колёсиком. Для клавиатуры доступны все кнопки районов.</p>
+          <p>Выбранные инициативы подсвечивают условные участки. Районные — только в назначенном районе, городские — во всех пяти. Нажмите на значок меры или «На карте», чтобы увидеть её карточку; это отметки плана, а не завершённого строительства.</p>
         </dialog>
       </>}
     </main>

@@ -4,7 +4,7 @@
 FEATURE
 
 ## Status
-Verify
+In Progress
 
 ## Source
 `docs/specs/001-city-scenario-feature.md` and `docs/specs/001-city-scenario-implementation.md`, approved split of `docs/PRD.md` (SHA-256 `8bf43c4c9a6e37ba10e4e1b14951bb0382c1f96b8125af41311e4f387cea8ee5`). Dataset: `docs/data-set.json`.
@@ -24,6 +24,7 @@ Optional comparison, events, presentations, and product extensions.
 - `AC-03`: deterministic baseline 52.56 and example approximately 56.5431 before display rounding; synergies, lag, thresholds and changes work.
 - `AC-04`: OpenAI explanation from computed data; explicit error on missing key or API failure, no fake result.
 - `AC-05`: clean launch and error check reproducible from README.
+- Подсветка инициатив по новому запросу: выбранная районная мера отмечает участок только в назначенном районе; городская — во всех пяти. Добавление/удаление, переназначение района, демо и сброс синхронно обновляют карту без пересоздания WebGL-сцены. Неназначенная мера не подсвечивает случайный район. Нажатие на отметку показывает название, назначение, цену и лаг выбранной меры.
 
 ## Decisions
 - React/Express scaffold and dataset already exist. User selected OpenAI API; use `gpt-4o-mini` via Responses API on the server, no added SDK needed. Display Score with two decimals; calculation remains full precision.
@@ -39,9 +40,14 @@ Optional comparison, events, presentations, and product extensions.
 - [x] Verify live OpenAI from the calculated API response and check invalid input; `.env.example` and README updated, valid/invalid API checks, tests, typecheck and build passed.
 - [x] Переработать фронтенд в тёмный dashboard с условной картой районов, реальными мерами и бюджетом, сохранив существующий end-to-end выбор → Score → AI.
 - [x] Финальная подгонка UI по прототипу: пропорции верхних/нижних панелей, типографика карточек, легенда Score, состояния каталога и диалоги. Проверен интерактивный сценарий и реальные viewport 1536/390 через браузер.
+- [x] Добавить привязанную к choices подсветку участков/зданий в Three.js, проецируемые значки и карточку выбранной инициативы. Проверены выбор, смена района, городские меры, удаление, сброс, вращение камеры и отсутствие WebGL в браузере на desktop/mobile.
+- [ ] Подключить подготовленные пользователем akim.png и три advisor-*.png к карточкам. Сохранить исходники, создать лёгкие WebP-копии, проверить кадрирование и переключение советников на desktop/mobile.
+- [ ] По уточнению пользователя заменить основную гарнитуру на Outfit, установить базовый вес 300, выделения 400 и максимум 500. Подключить локальный Inter 300–500 как кириллический fallback (у Outfit нет кириллицы), проверить фактические гарнитуры и веса в браузере.
 - [ ] Complete the UI walkthrough and independent clean run following README; capture observable evidence before sign-off.
 
 ## Verification Evidence
+- Подсветка инициатив — PASS: браузерный сценарий `MAP_HIGHLIGHTS_ONLY=1` в локальном `ui-refinement-qa.cjs` проверил отсутствие отметки до назначения района, M7/Нура, несколько районных мер, M12 во всех пяти районах, переназначение M7 в Есиль, удаление районной/городской меры и сброс. В демо видны все 9 отметок (4 районные + 5 городских); Нура показывает 4 действующие на район меры, Сарыарка 2. DOM canvas сохраняет идентичность при обновлении, положение значков меняется вместе с поворотом камеры. 390px без переполнения; при отключённом WebGL все 9 мер доступны кнопками. Осмотрены снимки `refined-highlight-*.png`; значение Score до расчёта не изменяется от подсветки.
+- После подсветки: `yarn typecheck`, `yarn build`, `yarn workspace @react-app/backend test` (7/7) PASS; `git diff --check` без ошибок. Существующие предупреждения размера бандла/PNG сохраняются.
 - Финальная UI-проверка через Chrome DevTools Protocol / headless Edge: 1536×1024 desktop и 390×844 mobile (через device emulation, без прежнего ограничения размера окна). Проверены пустой план с видимой ошибкой, загрузка демо-набора, пять заполненных слотов, закрытие через Escape, реальный API/AI-ответ, Score 56.54 / стоимость 95 / остаток 5, таблица десяти показателей и пять категорий каталога (3/3/3/2/3 карточки). Все растровые миниатюры загрузились; document.scrollWidth = 390 при viewport 390. Скриншоты начального экрана, результата, ошибки и mobile-диалога осмотрены. Проверочный скрипт и снимки находятся в локальной временной папке OpenCode (`ui-refinement-qa.cjs`, `refined-*.png`). Это проверка рабочего дерева, не независимый чистый запуск.
 - После интеграции изображений и финальной компоновки: `yarn typecheck`, `yarn build`, 7/7 backend tests PASS. Webpack сообщает о размере Three.js-бандла и исходных PNG; в карточках загружаются маленькие WebP-производные, не исходные многомегабайтные файлы.
 - `yarn workspace @react-app/backend test`: 7/7 pass (formula, lag/synergy/critical threshold, input rules, missing key, OpenAI request/response contract and full-to-runtime dataset consistency).
@@ -54,6 +60,7 @@ Optional comparison, events, presentations, and product extensions.
 - Редизайн по согласованному референсу: первая сцена с пятью метками районов, фильтруемым каталогом, выбором для плана, бюджетом и блоком реального результата. Headless Edge screenshots 1440px desktop и 500px narrow inspected; нижние метки на 500px скорректированы и повторно осмотрены. `yarn typecheck`, `yarn build`, 7/7 backend tests PASS после визуальных изменений. Полный интерактивный проход и отдельная проверка ширины 390px пока NOT VERIFIED.
 
 ## Notes
+- Подсветка использует существующие `choices` и каталог; `mapInitiatives.ts` разворачивает только валидные назначения, `cityHighlights.ts` управляет освобождаемым Three.js-слоем контуров, маяков и окраски. Обновление не пересоздаёт город и не сбрасывает камеру. Карточки мер показывают только реальные данные каталога, «В плане» и условное расположение. Расчёт/API не менялись.
 - Растровые изображения пользователя (14 PNG) подключены из `public/initiatives/`; исходники не изменялись. Производные WebP 256×256 созданы локально через Canvas и сохранены в `optimized/`. Старый неиспользуемый компонент SVG-рисунков удалён. Верхние панели и нижняя полоса 148px подогнаны к пропорциям прототипа; Score получил легенду, график показывает только реальные «до/после», нативные dialog обеспечивают клавиатурную навигацию и видимые ошибки. Полная интерактивная UI-проверка впервые подтверждена; независимый чистый запуск остаётся открытым.
 - Добавлены оригинальные векторные миниатюры для всех 14 инициатив в `InitiativeArtwork.tsx`, подключены вместо одноцветных иконок. Это SVG-иллюстрации, не фотографии или результаты генерации изображений. Typecheck/build PASS; транспортные карточки визуально проверены на desktop 1536×1024. Узкий экран 500×844 отрисован, но карточки ниже первого экрана и все остальные категории отдельно визуально не проверялись. Сохраняется предупреждение о размере Three.js-бандла.
 - Композиция всего UI приближена к прототипу: полноэкранный город, плавающий каталог справа, карточка роли слева, нижние показатели направлений, круговой Score и реальные сравнения районов до/после. План открывается кнопкой «Решения», AI-отчёт отдельной панелью; Escape закрывает панель и восстанавливается фокус. Фотографии персонажей заменены иконками, событий/управления временем нет. Осмотрены финальные снимки 1536×1024 и 500×844; typecheck/build PASS с прежним предупреждением о размере бандла. Полный интерактивный проход остаётся NOT VERIFIED.

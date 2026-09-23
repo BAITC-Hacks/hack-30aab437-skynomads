@@ -1,12 +1,27 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { createCityHighlights } from './cityHighlights';
+import type { MapInitiative } from './mapInitiatives';
+
+export interface CitySceneController {
+  updateInitiatives: (initiatives: MapInitiative[], focusedKey: string | null) => void;
+  render: () => void;
+  dispose: () => void;
+}
 
 export const districtLocations: Record<string, [number, number, number]> = {
   Есиль: [10, 10, -23], Алматы: [23, 14, -4], Сарыарка: [-36, 7, -17],
   Байконур: [-33, 6, 28], Нура: [5, 8, 28],
 };
 
-export const createCityScene = (host: HTMLDivElement, markers: Map<string, HTMLButtonElement>) => {
+export const createCityScene = (
+  host: HTMLDivElement,
+  markers: Map<string, HTMLButtonElement>,
+  initiativeOverlay: {
+    markers: Map<string, HTMLButtonElement>;
+    links: Map<string, SVGLineElement>;
+  },
+): CitySceneController => {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.6));
   renderer.shadowMap.enabled = true;
@@ -226,6 +241,8 @@ export const createCityScene = (host: HTMLDivElement, markers: Map<string, HTMLB
     box(x, .09, riverZ(x) + (random() - .5) * 10, .6 + random() * 2, .015, .035, rippleMaterial);
   }
 
+  const highlights = createCityHighlights(scene, buildings, instances);
+  let focusedInitiative: string | null = null;
   const draw = () => {
     renderer.render(scene, camera);
     markers.forEach((element, name) => {
@@ -237,6 +254,43 @@ export const createCityScene = (host: HTMLDivElement, markers: Map<string, HTMLB
       element.style.top = `${(-point.y + 1) * 50}%`;
       element.style.visibility = Math.abs(point.x) > 1 || Math.abs(point.y) > 1 ? 'hidden' : 'visible';
     });
+    const hostBounds = host.getBoundingClientRect();
+    const stage = host.closest('.command__body');
+    const obstacles = [
+      ...[...markers.values()].filter((element) => element.style.visibility !== 'hidden'),
+      ...Array.from(stage?.querySelectorAll<HTMLElement>('.mayor-card, .city-advisor, .initiative, .scenario-card, .dashboard') ?? []),
+    ].map((element) => element.getBoundingClientRect()).filter((rect) => rect.width && rect.height)
+      .map((rect) => ({ left: rect.left - hostBounds.left, top: rect.top - hostBounds.top, right: rect.right - hostBounds.left, bottom: rect.bottom - hostBounds.top }));
+    const offsets = [[0, 0], [0, -42], [60, -12], [-60, -12], [70, -52], [-70, -52],
+      [0, -90], [112, -30], [-112, -30], [0, -132], [0, 48], [65, 48], [-65, 48],
+      [0, 90], [112, 70], [-112, 70], [0, -176], [-160, -70], [160, -70]];
+    [...initiativeOverlay.markers.entries()].sort(([a], [b]) => Number(b === focusedInitiative) - Number(a === focusedInitiative)).forEach(([key, element]) => {
+      const anchor = highlights.anchors.get(key);
+      const link = initiativeOverlay.links.get(key);
+      element.style.visibility = 'hidden';
+      if (link) link.style.visibility = 'hidden';
+      if (!anchor) return;
+      const point = anchor.clone().project(camera);
+      if (Math.abs(point.x) > 1 || Math.abs(point.y) > 1 || Math.abs(point.z) > 1) return;
+      const anchorX = (point.x + 1) * hostBounds.width / 2;
+      const anchorY = (-point.y + 1) * hostBounds.height / 2;
+      const width = element.offsetWidth; const height = element.offsetHeight;
+      const placement = offsets.map(([dx, dy]) => ({ x: anchorX + dx, y: anchorY + dy }))
+        .find(({ x, y }) => x - width / 2 > 5 && x + width / 2 < hostBounds.width - 5
+          && y - height > 5 && y < hostBounds.height - 5
+          && !obstacles.some((rect) => x + width / 2 + 6 > rect.left && x - width / 2 - 6 < rect.right
+            && y + 6 > rect.top && y - height - 6 < rect.bottom));
+      if (!placement) return;
+      element.style.left = `${placement.x}px`;
+      element.style.top = `${placement.y}px`;
+      element.style.visibility = 'visible';
+      obstacles.push({ left: placement.x - width / 2, right: placement.x + width / 2, top: placement.y - height, bottom: placement.y });
+      if (link) {
+        link.setAttribute('x1', String(anchorX)); link.setAttribute('y1', String(anchorY));
+        link.setAttribute('x2', String(placement.x)); link.setAttribute('y2', String(placement.y));
+        link.style.visibility = 'visible';
+      }
+    });
   };
   const resize = () => {
     const w = host.clientWidth; const h = host.clientHeight;
@@ -247,12 +301,21 @@ export const createCityScene = (host: HTMLDivElement, markers: Map<string, HTMLB
     renderer.setSize(w, h); draw();
   };
   const observer = new ResizeObserver(resize); observer.observe(host);
+  const panelObserver = new ResizeObserver(draw);
+  host.closest('.command__body')?.querySelectorAll('.mayor-card, .city-advisor, .initiative, .scenario-card, .dashboard')
+    .forEach((panel) => panelObserver.observe(panel));
   controls.addEventListener('change', draw); resize();
-  return () => {
-    observer.disconnect(); controls.dispose();
+  const dispose = () => {
+    observer.disconnect(); panelObserver.disconnect(); controls.dispose();
+    highlights.dispose();
     instances.dispose(); windowMesh.dispose(); trees.dispose(); roofs.dispose();
     equipment.dispose(); pitchedRoofs.dispose(); cars.dispose();
     geometries.forEach((geometry) => geometry.dispose()); materials.forEach((mat) => mat.dispose());
     renderer.dispose(); renderer.domElement.remove();
+  };
+  return {
+    updateInitiatives: (initiatives, focusedKey) => { focusedInitiative = focusedKey; highlights.update(initiatives, focusedKey); draw(); },
+    render: draw,
+    dispose,
   };
 };

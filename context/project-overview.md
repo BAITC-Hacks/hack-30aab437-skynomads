@@ -23,6 +23,7 @@ Copied `react-app` boilerplate: Node.js >=22, Yarn Classic 1.x workspaces; React
 - `apps/frontend/`, `apps/backend/` — copied SPA/API boilerplate, including sample features and per-app READMEs.
 - `apps/frontend/public/initiatives/` — 14 user-provided PNG illustrations and optimized WebP thumbnails; Webpack bundles these local assets for the catalog.
 - `apps/frontend/app/features/simulator/ScenarioDashboard.tsx` — real direction averages, Score ring/legend and before/after chart; `InitiativeThumbnail.tsx` — local thumbnail loading with fallback to original PNG.
+- `apps/frontend/app/features/simulator/mapInitiatives.ts`, `cityHighlights.ts` — current choices mapped to illustrative district sites and a disposable Three.js highlight layer; citywide measures appear in all five districts. `CityMap.tsx` projects interactive measure badges without recreating the scene.
 - `docs/PRD.md` — reviewed track PRD and evaluation criteria.
 - `docs/data-set.json` — structured synthetic dataset and scoring rules.
 - `docs/data-set.md` — human-readable tables and explanation of the full source dataset.

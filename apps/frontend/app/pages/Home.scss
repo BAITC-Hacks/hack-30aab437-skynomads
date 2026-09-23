@@ -223,3 +223,152 @@
 @media (prefers-reduced-motion: reduce) {
   .city-map__marker, .command__budget-track span { transition: none; }
 }
+
+/* Full-screen city workspace: reference composition, real simulator data. */
+.command {
+  --panel: #142330;
+  --line: rgba(157, 187, 212, .18);
+  height: 100dvh;
+  min-height: 720px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  &__header { height: 74px; min-height: 74px; padding: 6px 12px 6px 22px; gap: 18px; background: #172635; }
+  &__identity strong { font-size: 25px; }
+  &__identity p { font-size: 11px; }
+  &__mark { border: 0; border-radius: 0; }
+  &__budget-top { width: 430px; min-width: 340px; background: #101e2b; border-radius: 11px; grid-template-columns: 24px minmax(0, 1fr) 65px 65px; }
+  &__budget-copy small { white-space: normal; font-size: 10px; }
+  &__status { display: flex; gap: 14px; justify-content: start; background: #10202e; border: 1px solid var(--line); border-radius: 11px; padding: 12px 18px; min-width: 250px; }
+  &__status strong { font-size: 13px; font-weight: 500; }
+  &__status small { display: block; font-size: 11px; color: #9fb5cc; margin-top: 4px; letter-spacing: 0; }
+  &__status button { padding: 8px; border: 0; border-radius: 8px; background: #83c6f5; color: #122436; cursor: pointer; }
+  &__layout { flex: 1; min-height: 0; grid-template-columns: 76px minmax(0, 1fr); }
+  &__nav { padding-top: 14px; background: linear-gradient(90deg, #142535, #192d3a); }
+  &__nav button { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 64px; padding: 14px 3px; margin: 2px 0; border: 0; border-radius: 8px; color: #a7bfd6; background: transparent; font-size: 10px; cursor: pointer; }
+  &__nav button:hover, &__nav button.is-active { color: #d4edff; background: #1d4778; }
+  &__nav a { padding: 17px 2px; gap: 8px; font-size: 10px; }
+  &__body { position: relative; height: 100%; display: flex; flex-direction: column; }
+  &__stage { position: absolute; inset: 0 0 38px; display: block; padding: 0; }
+  &__footer { margin-top: auto; min-height: 38px; padding: 8px 18px; gap: 20px; background: #132230; position: relative; z-index: 2; font-size: 11px; }
+  &__error, &__message { position: absolute; top: 10px; left: 30%; z-index: 12; max-width: 40%; box-shadow: 0 10px 25px #0007; }
+  &__veil { position: fixed; inset: 0; z-index: 19; background: #06152399; backdrop-filter: blur(3px); }
+  &__eyebrow { letter-spacing: 0; text-transform: none; color: #ecf3fb; font-size: 13px; }
+}
+.command .city-map { width: 100%; height: 100%; border: 0; border-radius: 0; }
+.command .city-map__topline { display: none; }
+.command .city-map__topline > span:last-child { display: none; }
+.command .city-map__bottomline { bottom: 214px; left: auto; right: 31%; max-width: 220px; }
+.command .city-map__legend { display: none; }
+.command .city-map__selection { min-width: 190px; }
+.command .city-map__marker { border-radius: 5px; padding: 10px 18px; min-width: 116px; border-color: #6e8c9633; backdrop-filter: blur(8px); background: #0c1d2beb; }
+.command .city-map__marker strong { font-size: 14px; }
+.command .city-map__marker span { font-size: 15px; color: #c5e6e9; }
+.mayor-card { position: absolute; top: 18px; left: 14px; width: 365px; display: flex; gap: 14px; padding: 10px; border: 1px solid #83a6b53b; border-radius: 13px; background: #0b1c28ed; color: #e7f1fb; box-shadow: 0 10px 30px #0003; }
+.mayor-card__portrait { width: 76px; min-width: 76px; height: 105px; border-radius: 17px; background: linear-gradient(150deg, #aec9d7, #52788b); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: #12384b; }
+.mayor-card__portrait small { letter-spacing: .14em; font-size: 10px; font-weight: 800; }
+.mayor-card p { line-height: 1.65; font-size: 12px; }
+.mayor-card strong { display: block; font-size: 13px; margin-bottom: 2px; }
+.city-advisor { position: absolute; left: 14px; bottom: 194px; display: flex; gap: 14px; width: 300px; padding: 15px; border: 1px solid #83a6b53b; border-radius: 13px; background: #10212ded; box-shadow: 0 10px 25px #0003; }
+.city-advisor > svg { flex: none; color: #95bfce; margin-top: 8px; }
+.city-advisor small { display: block; font-size: 10px; color: #91a8bb; }
+.city-advisor strong { font-size: 12px; }
+.city-advisor p { margin-top: 6px; color: #c4d7e4; font-size: 11px; line-height: 1.5; }
+.city-advisor button { display: flex; align-items: center; gap: 6px; background: transparent; border: 0; padding: 10px 0 0; color: #88caf8; font-size: 11px; cursor: pointer; }
+.command .initiative { position: absolute; right: 10px; top: 10px; width: 370px; height: auto; max-height: calc(100% - 220px); background: #0d1d2bee; backdrop-filter: blur(12px); box-shadow: 0 12px 30px #00122255; }
+.command .initiative__head { padding: 14px 18px 12px; }
+.command .initiative__head .command__eyebrow, .command .initiative__head p { display: none; }
+.command .initiative h2 { font-size: 18px; margin: 0; }
+.command .initiative__tabs { flex-wrap: nowrap; gap: 4px; padding: 0 10px 10px; }
+.command .initiative__tabs button { flex: 1; min-width: 0; font-size: 9px; padding: 10px 4px; }
+.command .initiative__list { flex: initial; min-height: 0; padding: 0 9px 9px; }
+.command .initiative__card { background: #1b2c3ad9; padding: 8px; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 8px; }
+.command .initiative__icon { width: 58px; height: 68px; position: relative; background: linear-gradient(150deg, #9bb7b9, #31526a); box-shadow: inset 0 0 0 1px #adcbd73b; color: #e0f2f6; }
+.command .initiative__icon small { position: absolute; bottom: 3px; right: 5px; font-size: 9px; }
+.command .initiative__icon--1 { background: linear-gradient(150deg, #85aa7a, #335c47); }
+.command .initiative__icon--2 { background: linear-gradient(150deg, #baac87, #866439); }
+.command .initiative__info strong { font-size: 11px; }
+.command .initiative__action button { padding: 9px 10px; background: #2869ff; }
+.command .plan[hidden], .command .dashboard__analysis[hidden] { display: none; }
+.command .plan { position: fixed; z-index: 20; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(1050px, 90vw); max-height: 85dvh; overflow-y: auto; margin: 0; padding: 28px; box-shadow: 0 25px 100px #0008; background: #142634; }
+.panel-close { position: absolute; top: 10px; right: 10px; border: 0; border-radius: 6px; padding: 6px; color: #c9ddeb; background: #30465b; cursor: pointer; }
+.command .plan__intro { padding-right: 28px; }
+.command .dashboard { position: absolute; z-index: 3; bottom: 38px; left: 0; right: 0; height: 174px; margin: 0; gap: 0; grid-template-columns: 1.5fr .95fr 1fr; }
+.command .dashboard > div { background: #0e202eee; backdrop-filter: blur(12px); padding: 13px; border-radius: 12px; overflow: hidden; }
+.command .dashboard__districts { margin-top: 10px; gap: 5px; }
+.command .dashboard__district { display: block; padding: 12px 8px; height: 106px; background: #1e303fd9; border-color: #57718326; }
+.command .dashboard__district > span { display: flex; align-items: center; gap: 5px; min-height: 33px; font-size: 9px; }
+.command .dashboard__district strong { display: inline-block; margin-top: 8px; font-size: 23px; }
+.command .dashboard__district small { margin-left: 6px; font-size: 10px; }
+.dashboard__district--0 svg { color: #5597ff; }.dashboard__district--1 svg { color: #74d342; }.dashboard__district--2 svg { color: #ffaa3b; }.dashboard__district--3 svg { color: #ff6264; }.dashboard__district--4 svg { color: #b486f2; }
+.command .dashboard__score { position: relative; }
+.command .dashboard__score > .command__eyebrow { display: block; min-height: 19px; }
+.score-ring { float: left; width: 108px; height: 108px; border-radius: 50%; padding: 8px; margin: 10px 16px 0 0; }
+.score-ring > div { height: 100%; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #122330; }
+.score-ring strong { font-size: 27px; }.score-ring small { font-size: 12px; color: #c0d8e9; }
+.command .dashboard__score p { margin-top: 30px; font-size: 12px; color: #9be5cf; }
+.command .dashboard__meter { display: none; }
+.district-chart { margin-top: 10px; display: grid; gap: 5px; }
+.district-chart > div { display: grid; grid-template-columns: 60px 1fr 25px; gap: 6px; align-items: center; font-size: 9px; color: #c5d9e8; }
+.district-chart > div > div { height: 11px; position: relative; background: #2d42524d; }
+.district-chart i, .district-chart b { position: absolute; height: 4px; left: 0; border-radius: 2px; }.district-chart i { top: 0; background: #8296ae; }.district-chart b { bottom: 0; background: #3ddac1; }
+.chart-legend { font-size: 9px; color: #96aebf; display: block; margin-top: 8px; }
+.command .dashboard__analysis { position: fixed; z-index: 21; right: 18px; top: 90px; bottom: 225px; width: min(440px, 90vw); overflow-y: auto; box-shadow: 0 15px 70px #0009; padding: 24px; background: #102533fa; }
+
+@media (max-width: 1200px) {
+  .command__identity p { display: none; }
+  .command__identity strong { font-size: 21px; }
+  .command__status { min-width: 205px; padding: 12px; }
+  .command .initiative { width: 330px; }
+  .mayor-card { width: 310px; }
+  .command .dashboard { grid-template-columns: 1.4fr 1fr 1fr; }
+  .command .dashboard__district > span { flex-direction: column; align-items: start; font-size: 8px; }
+  .command .dashboard__district strong { font-size: 18px; }
+  .score-ring { width: 86px; height: 86px; margin-right: 9px; }
+  .score-ring strong { font-size: 22px; }
+}
+@media (max-width: 900px) {
+  .command { height: auto; min-height: 100dvh; overflow: visible; }
+  .command__header { height: auto; flex-wrap: wrap; }
+  .command__identity { flex-basis: 100%; }
+  .command__budget-top { flex: 1; min-width: 260px; }
+  .command__layout { display: block; }
+  .command__nav { flex-direction: row; justify-content: center; padding: 4px; }
+  .command__nav button, .command__nav a { flex-direction: row; width: auto; padding: 10px; margin: 0; font-size: 11px; }
+  .command__body { height: auto; display: block; }
+  .command__stage { position: relative; inset: auto; }
+  .command .city-map { height: 530px; }
+  .mayor-card { top: 10px; left: 10px; width: 280px; }
+  .mayor-card__portrait { min-width: 48px; width: 48px; height: 75px; }
+  .mayor-card__portrait svg { width: 32px; }
+  .mayor-card p { font-size: 10px; }
+  .city-advisor { bottom: auto; top: 405px; left: 10px; width: 260px; }
+  .command .city-map__bottomline { bottom: 25px; right: 10px; }
+  .command .city-map__topline { display: none; }
+  .command .initiative { position: relative; right: auto; top: auto; width: auto; max-height: 460px; margin: 8px; }
+  .command .initiative__tabs button { font-size: 11px; }
+  .command .dashboard { position: relative; bottom: auto; height: auto; grid-template-columns: 1fr 1fr; margin: 8px; gap: 8px; }
+  .command .dashboard__scores { grid-column: 1 / -1; }
+  .command .dashboard__district > span { flex-direction: row; font-size: 11px; }
+  .command .dashboard__district strong { font-size: 24px; }
+  .command .dashboard__analysis { top: 15vh; bottom: 10vh; }
+  .command .plan { padding: 24px 16px; }
+  .command__error { max-width: 90%; left: 0; top: 100px; }
+}
+@media (max-width: 550px) {
+  .command__budget-top { min-width: 0; width: 100%; flex-basis: 100%; }
+  .command__status { min-width: 0; width: 100%; padding: 7px 12px; }
+  .command__status div { flex: 1; }
+  .command__status small { display: inline; margin-left: 8px; }
+  .command__header { gap: 8px; }
+  .command .city-map { height: 570px; }
+  .command .city-map__marker { min-width: 70px; padding: 6px; }
+  .command .city-map__marker strong { font-size: 10px; }.command .city-map__marker span { font-size: 11px; }
+  .city-advisor { top: 445px; }
+  .command .city-map__bottomline { display: none; }
+  .command .dashboard { grid-template-columns: minmax(0, 1fr); }
+  .command .dashboard__districts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .command .dashboard__score { min-height: 160px; }
+  .command .plan__intro { align-items: start; flex-direction: column; }
+  .command__footer p { flex-basis: 100%; }
+}

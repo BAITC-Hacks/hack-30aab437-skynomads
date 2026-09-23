@@ -125,6 +125,11 @@ module.exports = (env, argv) => {
       new CopyPlugin({
         patterns: [
           {
+            from: path.resolve(__dirname, 'public', '_headers'),
+            to: path.resolve(__dirname, 'build', '_headers'),
+            toType: 'file',
+          },
+          {
             from: path.resolve(__dirname, 'app', 'shared', 'assets', 'fonts', 'OFL.txt'),
             to: path.resolve(__dirname, 'build', 'static', 'media', 'OFL.txt'),
           },

@@ -49,6 +49,7 @@ React router/layout and Express routers/middleware provide entry points. `apps/b
 - Build: `yarn build` (passed after frozen lockfile install).
 - Verify: `yarn verify` (tests → typecheck → build).
 - Smoke: `yarn smoke` (built app, no paid call); `yarn smoke --live` (one real OpenAI request).
+- Cloudflare: `yarn cf:check` (bundle dry-run), `yarn cf:dev` (local Worker), `yarn deploy` (authorized publication only). `apps/backend/cloudflare.ts` reuses domain service/AI; `db.json` is bundled. Target account is selected via `CLOUDFLARE_ACCOUNT_ID`; ELDOC excluded by user.
 
 ## Current State
 
@@ -67,7 +68,7 @@ Hackathon MVP submission verification; see `build-plan.md` and `docs/submission.
 ## Known Risks
 
 - Independent clean launch by another participant is not yet evidenced. Full interactive demo was verified in the current worktree.
-- Backend loads `db.json` relative to the backend workspace working directory; run through workspace scripts or ensure this working directory in deployment. Backend Vercel config includes `db.json` in bundled files.
+- The JSON dataset is now imported into Node/Worker bundles. Local `.env` still depends on the backend workspace working directory; use workspace scripts.
 - Real OpenAI responses require a locally configured API key in `apps/backend/.env`; the key is excluded from Git. The live API response was observed without logging the key.
 - `.agents/` is ignored by Git, so a clean clone will not contain the Devtools toolkit unless provisioned separately.
 - The hackathon playbook is outside the repository and will not be included in a clean clone.

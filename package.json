@@ -15,10 +15,14 @@
     "test": "npm run test --workspace @react-app/backend",
     "verify": "yarn test && yarn typecheck && yarn build",
     "serve": "npm run start --workspace @react-app/backend",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "cf:dev": "wrangler dev --local",
+    "cf:check": "wrangler deploy --dry-run",
+    "deploy": "yarn build && wrangler deploy"
   },
   "devDependencies": {
-    "concurrently": "^10.0.5"
+    "concurrently": "^10.0.5",
+    "wrangler": "4.136.3"
   },
   "engines": {
     "node": ">=22.18.0"

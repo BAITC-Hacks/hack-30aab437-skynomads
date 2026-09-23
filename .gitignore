@@ -11,3 +11,6 @@ coverage/
 Thumbs.db
 .idea/
 .vscode/
+.wrangler/
+.dev.vars
+.dev.vars.*

@@ -47,6 +47,7 @@ Optional comparison, events, presentations, and product extensions.
 - [x] Complete automated UI walkthrough and clean-directory install following README; capture observable evidence.
 - [x] Submission audit: resolve FIND-001–004; validate required PRD behaviors, safe errors, supported launch and clean-directory install; prepare reproducible demo and final acceptance report. No publication performed.
 - [ ] Independent teammate repeats README from the final published revision and records demo/error verification; team submits repository/video (deploy only if required by track).
+- [ ] Authorized release: push current intended work to main and deploy Cloudflare Worker. ELDOC explicitly excluded; awaiting target account/auth. Pre-deploy checks passed (12 tests, local Node/Worker smoke, Worker dry-run); see `history/release-cloudflare.md`.
 
 ## Verification Evidence
 - **Latest submission gate (2026-09-23):** `yarn verify` PASS (10 tests, both typechecks, build); `yarn smoke` PASS; `yarn smoke --live` PASS. A clean worktree snapshot without dependencies/builds/.env/.agents installed with `yarn install --frozen-lockfile --non-interactive`, then passed verify/smoke. Built server from that folder passed browser demo on 1536×1024 and 390×844, with real AI, Score 56.54, cost 95, remaining 5, invalid-plan warning and all 14 images. Existing local key injected only into child-process environment for the live check, never exported. See `docs/submission.md`. Earlier notes below are historical and superseded where they say checks are unavailable.

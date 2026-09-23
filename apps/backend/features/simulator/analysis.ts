@@ -4,8 +4,10 @@ import type { ScenarioResult } from './service.js';
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-export const explainScenario = async (result: ScenarioResult): Promise<string> => {
-  const key = process.env.OPENAI_API_KEY?.trim();
+export const explainScenario = async (
+  result: ScenarioResult, apiKey: string | undefined = process.env.OPENAI_API_KEY,
+): Promise<string> => {
+  const key = apiKey?.trim();
   if (!key) throw new Error('AI-анализ недоступен: задайте OPENAI_API_KEY на сервере.');
 
   const strongest = result.districts.reduce((best, district) =>

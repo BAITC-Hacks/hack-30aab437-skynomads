@@ -1,5 +1,4 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import sourceData from '../../db.json' with { type: 'json' };
 
 interface District {
   name: string;
@@ -61,10 +60,9 @@ export interface ScenarioResult {
 
 export class InputError extends Error {}
 
-/* Yarn workspaces run backend scripts with apps/backend as the working directory. */
-const dataset = JSON.parse(
-  readFileSync(resolve(process.cwd(), 'db.json'), 'utf8'),
-) as Dataset;
+/* Bundled local JSON is checked against the canonical dataset by dataset.test.ts.
+   JSON inference adds optional undefined keys to the heterogeneous effects union. */
+const dataset = sourceData as unknown as Dataset;
 
 const measuresById = new Map(dataset.measures.map((measure) => [measure.id, measure]));
 const districtNames = new Set(dataset.districts.map((district) => district.name));

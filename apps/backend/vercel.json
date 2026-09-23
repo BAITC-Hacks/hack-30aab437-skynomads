@@ -1,0 +1,13 @@
+{
+  "framework": null,
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "{models/**/*.json,public/**}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/media/(.*)", "destination": "/api" },
+    { "source": "/(.*)", "destination": "/api" }
+  ]
+}

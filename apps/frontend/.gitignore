@@ -1,0 +1,13 @@
+node_modules/
+npm-debug.*
+build/
+
+# Environment
+.env
+.env.local
+
+# Prisma generated client
+generated/
+
+# macOS
+.DS_Store

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 export const districtLocations: Record<string, [number, number, number]> = {
-  Есиль: [10, 10, -23], Алматы: [38, 8, 9], Сарыарка: [-36, 7, -17],
+  Есиль: [10, 10, -23], Алматы: [23, 14, -4], Сарыарка: [-36, 7, -17],
   Байконур: [-33, 6, 28], Нура: [5, 8, 28],
 };
 

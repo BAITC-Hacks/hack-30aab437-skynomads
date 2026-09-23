@@ -125,6 +125,10 @@ module.exports = (env, argv) => {
       new CopyPlugin({
         patterns: [
           {
+            from: path.resolve(__dirname, 'public', 'initiatives'),
+            to: path.resolve(__dirname, 'build', 'initiatives'),
+          },
+          {
             from: path.resolve(__dirname, 'public', 'favicon.ico'),
             to: path.resolve(__dirname, 'build'),
           },

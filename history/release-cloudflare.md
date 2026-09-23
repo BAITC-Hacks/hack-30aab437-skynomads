@@ -22,6 +22,7 @@ First deployment: no prior Worker version to roll back to. If deployment/smoke f
 ## Evidence / state
 
 - At preflight local Wrangler reported unauthenticated. User must authenticate the chosen non-ELDOC account; previous ELDOC suggestion withdrawn.
-- Release revision, deploy result, URL and smoke evidence: pending.
+- Release candidate revision: `757430d` (`feat: add Cloudflare Workers deployment for city simulator`). Successfully pushed to `origin/main`; earlier submission-preparation work is included in preceding commit `fb1a7b0`.
+- Deployment: **BLOCKED pending user authentication and target selection**. Wrangler still reports unauthenticated; no deployment URL is claimed.
 - Local candidate verification: `yarn verify` — 12/12 tests, typecheck/build passed; `yarn cf:check` — Worker bundle dry-run passed (28.78 KiB, gzip 6.41 KiB, assets + rate limiter). Wrangler local runtime on 8789 served SPA and catalog, returned example cost 95 / Score 56.54 and explicit missing-key error. Local Express `yarn smoke` still passes.
 - No mutations to any Cloudflare account have been performed. Awaiting non-ELDOC account login/selection before deployment.

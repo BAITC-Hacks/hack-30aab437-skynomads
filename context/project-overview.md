@@ -14,7 +14,7 @@ Copied `react-app` boilerplate: Node.js >=22, Yarn Classic 1.x workspaces; React
 
 ## Architecture
 
-`apps/frontend/app/pages/Home.tsx` is a dark React/SCSS simulator dashboard with a schematic CSS/SVG district map in `apps/frontend/app/features/simulator/CityMap.tsx`. `apps/frontend/app/features/simulator/api.ts` calls `/api/simulator` via Webpack's `/api` proxy. `apps/backend/features/simulator/` validates input, loads the minimal `apps/backend/db.json` dataset, calculates the Score and requests an OpenAI explanation. The full source dataset remains in `docs/data-set.json`. Existing auth/blog/media features belong to the copied scaffold, not the scenario.
+`apps/frontend/app/pages/Home.tsx` is a dark React/SCSS simulator dashboard. `apps/frontend/app/features/simulator/CityMap.tsx` mounts a procedural Three.js city from `cityScene.ts`, with instanced buildings/windows/trees, river, bridges and projected district labels. `apps/frontend/app/features/simulator/api.ts` calls `/api/simulator` via Webpack's `/api` proxy. `apps/backend/features/simulator/` validates input, loads the minimal `apps/backend/db.json` dataset, calculates the Score and requests an OpenAI explanation. The full source dataset remains in `docs/data-set.json`. Existing auth/blog/media features belong to the copied scaffold, not the scenario.
 
 ## Repository Map
 

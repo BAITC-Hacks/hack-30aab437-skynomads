@@ -229,7 +229,10 @@ export const createCityScene = (host: HTMLDivElement, markers: Map<string, HTMLB
   const draw = () => {
     renderer.render(scene, camera);
     markers.forEach((element, name) => {
-      const point = new THREE.Vector3(...districtLocations[name]).project(camera);
+      /* Separate the eastern label from Esil in the narrow overview. */
+      const location: [number, number, number] = host.clientWidth < 600 && name === 'Алматы'
+        ? [38, 8, 9] : districtLocations[name];
+      const point = new THREE.Vector3(...location).project(camera);
       element.style.left = `${(point.x + 1) * 50}%`;
       element.style.top = `${(-point.y + 1) * 50}%`;
       element.style.visibility = Math.abs(point.x) > 1 || Math.abs(point.y) > 1 ? 'hidden' : 'visible';

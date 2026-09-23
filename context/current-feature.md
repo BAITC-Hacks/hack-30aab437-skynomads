@@ -4,7 +4,7 @@
 FEATURE
 
 ## Status
-In Progress
+Verify
 
 ## Source
 `docs/specs/001-city-scenario-feature.md` and `docs/specs/001-city-scenario-implementation.md`, approved split of `docs/PRD.md` (SHA-256 `8bf43c4c9a6e37ba10e4e1b14951bb0382c1f96b8125af41311e4f387cea8ee5`). Dataset: `docs/data-set.json`.
@@ -38,10 +38,12 @@ Optional comparison, events, presentations, and product extensions.
 - [x] Replace scaffold home screen with a selection/results flow driven by the API.
 - [x] Verify live OpenAI from the calculated API response and check invalid input; `.env.example` and README updated, valid/invalid API checks, tests, typecheck and build passed.
 - [x] Переработать фронтенд в тёмный dashboard с условной картой районов, реальными мерами и бюджетом, сохранив существующий end-to-end выбор → Score → AI.
-- [ ] Финальная подгонка UI по прототипу: пропорции верхних/нижних панелей, типографика карточек, легенда Score, состояния каталога и диалоги. Проверить интерактивный сценарий и реальные viewport 1536/390 через браузер.
+- [x] Финальная подгонка UI по прототипу: пропорции верхних/нижних панелей, типографика карточек, легенда Score, состояния каталога и диалоги. Проверен интерактивный сценарий и реальные viewport 1536/390 через браузер.
 - [ ] Complete the UI walkthrough and independent clean run following README; capture observable evidence before sign-off.
 
 ## Verification Evidence
+- Финальная UI-проверка через Chrome DevTools Protocol / headless Edge: 1536×1024 desktop и 390×844 mobile (через device emulation, без прежнего ограничения размера окна). Проверены пустой план с видимой ошибкой, загрузка демо-набора, пять заполненных слотов, закрытие через Escape, реальный API/AI-ответ, Score 56.54 / стоимость 95 / остаток 5, таблица десяти показателей и пять категорий каталога (3/3/3/2/3 карточки). Все растровые миниатюры загрузились; document.scrollWidth = 390 при viewport 390. Скриншоты начального экрана, результата, ошибки и mobile-диалога осмотрены. Проверочный скрипт и снимки находятся в локальной временной папке OpenCode (`ui-refinement-qa.cjs`, `refined-*.png`). Это проверка рабочего дерева, не независимый чистый запуск.
+- После интеграции изображений и финальной компоновки: `yarn typecheck`, `yarn build`, 7/7 backend tests PASS. Webpack сообщает о размере Three.js-бандла и исходных PNG; в карточках загружаются маленькие WebP-производные, не исходные многомегабайтные файлы.
 - `yarn workspace @react-app/backend test`: 7/7 pass (formula, lag/synergy/critical threshold, input rules, missing key, OpenAI request/response contract and full-to-runtime dataset consistency).
 - `yarn typecheck`, `yarn build`: pass with current code.
 - Local Express smoke: GET `/api/simulator` returns 14 measures, budget 100, baseline 52.56; empty POST returns HTTP 400; valid example POST returns cost 95, score 56.5431, M10 + M12 synergy and an explicit no-key AI error.
@@ -52,6 +54,7 @@ Optional comparison, events, presentations, and product extensions.
 - Редизайн по согласованному референсу: первая сцена с пятью метками районов, фильтруемым каталогом, выбором для плана, бюджетом и блоком реального результата. Headless Edge screenshots 1440px desktop и 500px narrow inspected; нижние метки на 500px скорректированы и повторно осмотрены. `yarn typecheck`, `yarn build`, 7/7 backend tests PASS после визуальных изменений. Полный интерактивный проход и отдельная проверка ширины 390px пока NOT VERIFIED.
 
 ## Notes
+- Растровые изображения пользователя (14 PNG) подключены из `public/initiatives/`; исходники не изменялись. Производные WebP 256×256 созданы локально через Canvas и сохранены в `optimized/`. Старый неиспользуемый компонент SVG-рисунков удалён. Верхние панели и нижняя полоса 148px подогнаны к пропорциям прототипа; Score получил легенду, график показывает только реальные «до/после», нативные dialog обеспечивают клавиатурную навигацию и видимые ошибки. Полная интерактивная UI-проверка впервые подтверждена; независимый чистый запуск остаётся открытым.
 - Добавлены оригинальные векторные миниатюры для всех 14 инициатив в `InitiativeArtwork.tsx`, подключены вместо одноцветных иконок. Это SVG-иллюстрации, не фотографии или результаты генерации изображений. Typecheck/build PASS; транспортные карточки визуально проверены на desktop 1536×1024. Узкий экран 500×844 отрисован, но карточки ниже первого экрана и все остальные категории отдельно визуально не проверялись. Сохраняется предупреждение о размере Three.js-бандла.
 - Композиция всего UI приближена к прототипу: полноэкранный город, плавающий каталог справа, карточка роли слева, нижние показатели направлений, круговой Score и реальные сравнения районов до/после. План открывается кнопкой «Решения», AI-отчёт отдельной панелью; Escape закрывает панель и восстанавливается фокус. Фотографии персонажей заменены иконками, событий/управления временем нет. Осмотрены финальные снимки 1536×1024 и 500×844; typecheck/build PASS с прежним предупреждением о размере бандла. Полный интерактивный проход остаётся NOT VERIFIED.
 - Детализация карты по прототипу: более низкая жилая застройка и выделенный высотный центр; отдельные окна на четырёх фасадах, крыши и оборудование, терракотовые скатные крыши, арочные мосты с подвесами, ряды деревьев на берегах, автомобили и водная рябь. Центральная башня получила изогнутые опоры и площадь; стадион освобождён от пересекавшихся зданий. Проверены новые рендеры Edge 1440×960 и 500×844; typecheck и build PASS (прежнее предупреждение о размере Three.js-бандла остаётся, vendors ~930 KiB). Это стилизованная процедурная интерпретация, не пиксельная копия референса.

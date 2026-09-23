@@ -21,6 +21,8 @@ Copied `react-app` boilerplate: Node.js >=22, Yarn Classic 1.x workspaces; React
 - `README.md` — repository identity, scaffold status and local setup commands.
 - `package.json`, `yarn.lock` — Yarn workspace scripts and locked dependencies.
 - `apps/frontend/`, `apps/backend/` — copied SPA/API boilerplate, including sample features and per-app READMEs.
+- `apps/frontend/public/initiatives/` — 14 user-provided PNG illustrations and optimized WebP thumbnails; Webpack bundles these local assets for the catalog.
+- `apps/frontend/app/features/simulator/ScenarioDashboard.tsx` — real direction averages, Score ring/legend and before/after chart; `InitiativeThumbnail.tsx` — local thumbnail loading with fallback to original PNG.
 - `docs/PRD.md` — reviewed track PRD and evaluation criteria.
 - `docs/data-set.json` — structured synthetic dataset and scoring rules.
 - `docs/data-set.md` — human-readable tables and explanation of the full source dataset.
@@ -45,7 +47,7 @@ React router/layout and Express routers/middleware provide entry points. `apps/b
 
 ## Current State
 
-Repository includes source and per-app Vercel configuration but no deployed environment or CI workflow was found. Simulator implementation exists locally, with passing tests/build, API smoke checks and a successful live OpenAI response from the example scenario. The model now receives backend-computed comparison/allocation facts and selected measure effects rather than being asked to infer rankings. Full browser walkthrough and independent clean-clone launch remain unverified. Original ODT files were removed in team commit `1d3a1dd` after conversion.
+Repository includes source and per-app Vercel configuration but no deployed environment or CI workflow was found. Simulator implementation has passing tests/build, API smoke checks and a successful live OpenAI response. An interactive browser walkthrough now verifies the demo, invalid selection, result, dialogs, all image categories and true 390px responsive layout. Independent clean-clone launch remains unverified. Original ODT files were removed in team commit `1d3a1dd` after conversion.
 
 ## Current Milestone
 
@@ -59,7 +61,7 @@ UNKNOWN — no approved build plan yet.
 
 ## Known Risks
 
-- Full browser walkthrough of selection to AI explanation and independent clean launch by another participant are not yet evidenced.
+- Independent clean launch by another participant is not yet evidenced. Full interactive demo was verified in the current worktree.
 - Backend loads `db.json` relative to the backend workspace working directory; run through workspace scripts or ensure this working directory in deployment. Backend Vercel config includes `db.json` in bundled files.
 - Real OpenAI responses require a locally configured API key in `apps/backend/.env`; the key is excluded from Git. The live API response was observed without logging the key.
 - `.agents/` is ignored by Git, so a clean clone will not contain the Devtools toolkit unless provisioned separately.

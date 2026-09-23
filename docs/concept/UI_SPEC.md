@@ -1,5 +1,12 @@
 # UI Specification — Isometric City
 
+## Visual reference
+
+![Preferred simple isometric direction](assets/mock-isometric-simple.svg)
+
+**Primary reference:** светлый, простой 2GIS/farm-style.  
+Detailed dark mock хранится рядом как anti-reference для избыточной детализации: [mock-detailed.svg](assets/mock-detailed.svg).
+
 ## Visual direction
 
 Цель: не фотореализм и не сложный SimCity.

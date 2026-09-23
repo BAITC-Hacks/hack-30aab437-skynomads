@@ -12,6 +12,20 @@ AI не рассчитывает Score и не придумывает цифры
 
 > **SimCity снаружи. Deterministic simulation внутри. AI analyst сверху.**
 
+## Visual references
+
+### Preferred: simple isometric / 2GIS / farm style
+
+![Preferred simple isometric direction](assets/mock-isometric-simple.svg)
+
+Это основной reference для реализации: бежевые block-buildings, low-poly greenery, минимум текстур и максимум читаемости.
+
+### Early direction: detailed cinematic
+
+![Early detailed cinematic direction](assets/mock-detailed.svg)
+
+Этот вариант оставлен как reference для wow-effect, но **не является целевой детализацией**: для POC он визуально перегружен и дороже в реализации.
+
 ## Почему это сильнее обычного dashboard
 
 Обычный dashboard показывает числа после выбора карточек.

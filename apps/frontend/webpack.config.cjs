@@ -23,6 +23,7 @@ module.exports = (env, argv) => {
       maxAssetSize: 512000,
     },
     devServer: {
+      host: '0.0.0.0',
       static: {
         directory: path.resolve(__dirname, 'build'),
       },
@@ -38,7 +39,7 @@ module.exports = (env, argv) => {
       proxy: [
         {
           context: ['/api'],
-          target: 'http://localhost:7000',
+          target: 'http://localhost:7001',
         },
       ],
     },
@@ -150,7 +151,7 @@ module.exports = (env, argv) => {
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
-            chunks: 'all',
+            chunks: 'initial',
           },
         },
       },

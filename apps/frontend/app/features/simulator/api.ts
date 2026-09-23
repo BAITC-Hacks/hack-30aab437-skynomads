@@ -28,6 +28,7 @@ export interface Scenario {
     name: string;
     score: number;
     delta: number;
+    indicators: Record<string, number>;
     changes: Record<string, number>;
   }[];
   synergies: string[];

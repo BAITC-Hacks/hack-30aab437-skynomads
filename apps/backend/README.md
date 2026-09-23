@@ -56,7 +56,7 @@ yarn install
 yarn dev
 ```
 
-Default local URL: `http://localhost:7000`.
+Default local URL: `http://localhost:7001`.
 
 ## Environment Variables
 
@@ -74,7 +74,7 @@ JWT_SECRET=your_long_random_secret
 Optional:
 
 ```env
-PORT=7000
+PORT=7001
 NODE_ENV=development
 JWT_EXPIRE=30d
 

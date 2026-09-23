@@ -15,6 +15,7 @@ import { errorHandler } from './shared/index.js';
 
 dotenv.config({ path: './config/config.env', quiet: true });
 dotenv.config({ quiet: true });
+dotenv.config({ path: '../../.env', quiet: true });
 
 const rootDir = process.cwd();
 
@@ -107,7 +108,7 @@ app.get(/(.*)/, (req: Request, res: Response) =>
   res.sendFile('index.html', { root: path.join(rootDir, 'public') }),
 );
 
-const PORT = Number(process.env.PORT ?? 7000);
+const PORT = Number(process.env.PORT ?? 7001);
 
 const server = process.env.VERCEL
   ? null

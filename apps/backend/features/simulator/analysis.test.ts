@@ -21,16 +21,18 @@ test('missing API key fails explicitly without a generated explanation', async (
   }
 });
 
-test('analysis sends computed data through the real Responses HTTP contract', async () => {
+test('analysis sends computed data and asks for grounded recommendations', async () => {
   const previousKey = process.env.OPENAI_API_KEY;
   const previousFetch = globalThis.fetch;
   process.env.OPENAI_API_KEY = 'test-only-key';
   globalThis.fetch = async (url, options) => {
     assert.equal(url, 'https://api.openai.com/v1/responses');
-    const body = JSON.parse(String(options?.body)) as { model: string; input: string; store: boolean };
+    const body = JSON.parse(String(options?.body)) as { model: string; input: string; store: boolean; instructions: string };
     assert.equal(body.model, 'gpt-4o-mini');
     assert.equal(body.store, false);
     assert.equal((JSON.parse(body.input) as { score: number }).score, scenario.score);
+    assert.match(body.instructions, /рекомендации/);
+    assert.match(body.instructions, /Не рассчитывай новый Score/);
     assert.equal((options?.headers as Record<string, string>).Authorization, 'Bearer test-only-key');
     return new Response(JSON.stringify({
       status: 'completed',

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { CITY_EVENTS, type CityEvent } from './events.js';
 
 interface District {
   name: string;
@@ -49,6 +50,9 @@ export interface DistrictResult {
 }
 
 export interface ScenarioResult {
+  budget: number;
+  reservedBudget: number;
+  event: CityEvent | null;
   cost: number;
   remaining: number;
   score: number;
@@ -69,14 +73,36 @@ const dataset = JSON.parse(
 const measuresById = new Map(dataset.measures.map((measure) => [measure.id, measure]));
 const districtNames = new Set(dataset.districts.map((district) => district.name));
 
-export const getCatalog = () => ({
-  budget: dataset.rules.budget,
-  districts: dataset.districts,
+export const resolveEvent = (input: unknown): CityEvent | null => {
+  if (input === undefined || input === null || input === '') return null;
+  const event = typeof input === 'string' ? CITY_EVENTS.find((item) => item.id === input) : undefined;
+  if (!event) throw new InputError('Неизвестное городское событие. Выберите условия из каталога.');
+  return event;
+};
+
+const startingDistricts = (event: CityEvent | null): District[] => dataset.districts.map((district) => {
+  if (!event) return district;
+  const indicators = { ...district.indicators };
+  for (const shock of event.shocks) {
+    if (shock.district !== null && shock.district !== district.name) continue;
+    for (const [code, effect] of Object.entries(shock.effects)) indicators[code] += effect;
+  }
+  for (const code of Object.keys(indicators)) indicators[code] = Math.max(0, Math.min(100, indicators[code]));
+  const baselineDistrictScore = Object.entries(dataset.score.indicatorWeights)
+    .reduce((sum, [code, weight]) => sum + weight * indicators[code], 0);
+  return { ...district, indicators, baselineDistrictScore };
+});
+
+export const getCatalog = (eventId?: unknown) => ({
+  budget: dataset.rules.budget - (resolveEvent(eventId)?.reserve ?? 0),
+  reservedBudget: resolveEvent(eventId)?.reserve ?? 0,
+  event: resolveEvent(eventId),
+  districts: startingDistricts(resolveEvent(eventId)),
   indicators: dataset.indicators.definitions,
   measures: dataset.measures,
 });
 
-const validateDecisions = (input: unknown): Decision[] => {
+export const validateDecisions = (input: unknown, budget = dataset.rules.budget): Decision[] => {
   if (!Array.isArray(input) || input.length !== dataset.rules.decisionCountExact) {
     throw new InputError(`Выберите ровно ${dataset.rules.decisionCountExact} мероприятий.`);
   }
@@ -116,8 +142,8 @@ const validateDecisions = (input: unknown): Decision[] => {
   }
 
   const cost = decisions.reduce((sum, decision) => sum + measuresById.get(decision.measureId)!.cost, 0);
-  if (cost > dataset.rules.budget) {
-    throw new InputError(`Превышен бюджет: ${cost} из ${dataset.rules.budget}.`);
+  if (cost > budget) {
+    throw new InputError(`Превышен доступный бюджет: ${cost} из ${budget}. Перераспределите средства.`);
   }
 
   for (const conflict of dataset.incompatibilities) {
@@ -130,12 +156,12 @@ const validateDecisions = (input: unknown): Decision[] => {
   return decisions;
 };
 
-const compute = (decisions: Decision[]): ScenarioResult => {
+const compute = (decisions: Decision[], event: CityEvent | null = null): ScenarioResult => {
   const selected = new Map(decisions.map((decision) => [decision.measureId, decision]));
   const appliedSynergies = dataset.synergies.pairs.filter(({ measureIds }) => measureIds.every((id) => selected.has(id)));
   let criticalPairs = 0;
 
-  const districts = dataset.districts.map((district) => {
+  const districts = startingDistricts(event).map((district) => {
     const indicators = { ...district.indicators };
 
     for (const decision of decisions) {
@@ -172,8 +198,11 @@ const compute = (decisions: Decision[]): ScenarioResult => {
   const cost = decisions.reduce((sum, decision) => sum + measuresById.get(decision.measureId)!.cost, 0);
 
   return {
+    budget: dataset.rules.budget - (event?.reserve ?? 0),
+    reservedBudget: event?.reserve ?? 0,
+    event,
     cost,
-    remaining: dataset.rules.budget - cost,
+    remaining: dataset.rules.budget - (event?.reserve ?? 0) - cost,
     score,
     baselineScore: 0,
     criticalPairs,
@@ -194,9 +223,13 @@ const compute = (decisions: Decision[]): ScenarioResult => {
 
 const baseline = compute([]).score;
 
-export const evaluateScenario = (input: unknown): ScenarioResult => {
-  const decisions = validateDecisions(input);
-  return { ...compute(decisions), baselineScore: baseline };
+export const evaluateScenario = (input: unknown, eventId?: unknown): ScenarioResult => {
+  const event = resolveEvent(eventId);
+  const decisions = validateDecisions(input, dataset.rules.budget - (event?.reserve ?? 0));
+  return { ...compute(decisions, event), baselineScore: event ? compute([], event).score : baseline };
 };
 
-export const getBaselineScore = (): number => baseline;
+export const getBaselineScore = (eventId?: unknown): number => {
+  const event = resolveEvent(eventId);
+  return event ? compute([], event).score : baseline;
+};

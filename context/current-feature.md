@@ -10,13 +10,15 @@ In Progress
 `docs/specs/001-city-scenario-feature.md` and `docs/specs/001-city-scenario-implementation.md`, approved split of `docs/PRD.md` (SHA-256 `8bf43c4c9a6e37ba10e4e1b14951bb0382c1f96b8125af41311e4f387cea8ee5`). Dataset: `docs/data-set.json`.
 
 ## Goals
+Active extension MVP-2: R-08–R-12 / AC-06–AC-10 in `feature/city-team-scenarios` from main e771b18: shared team results, district charts, verified improvement + AI, budget-impacting events, PPTX.
+
 One real end-to-end scenario: five choices → deterministic validation and Score → real OpenAI explanation → reproducible demo.
 
 ## Scope
 `R-01`–`R-07`, `AC-01`–`AC-05` from the approved feature spec.
 
 ## Non-Goals
-Optional comparison, events, presentations, and product extensions.
+Accounts, global optimization and distributed persistence. All five previously optional features were explicitly requested on 2026-09-23 and are now in scope.
 
 ## Acceptance Criteria
 - `AC-01`: shared budget 100; example cost 95 accepted, overbudget refused.
@@ -34,6 +36,9 @@ Optional comparison, events, presentations, and product extensions.
 - Live API call verified using a locally configured, Git-ignored backend `.env`; full browser walkthrough and independent clean launch remain to be checked.
 
 ## Implementation Plan
+- [ ] MVP-2: event-aware scoring, shared persistent results, recommendations and PPTX endpoints.
+- [ ] MVP-2: integrate teams/events/presentation panels and per-district charts in the 3D UI.
+- [ ] MVP-2: regression tests, real AI/UI, persistence restart, PPTX inspection and README.
 - [x] Implement and test deterministic dataset-backed validation and Score in `apps/backend/features/simulator/`; load runtime `apps/backend/db.json`, checked against canonical `docs/data-set.json`.
 - [x] Add an Express API endpoint to serve catalog and evaluate five decisions; call OpenAI Responses API with calculated data and explicit configuration/API errors.
 - [x] Replace scaffold home screen with a selection/results flow driven by the API.

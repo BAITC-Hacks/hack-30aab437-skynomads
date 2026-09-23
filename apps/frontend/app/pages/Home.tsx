@@ -4,12 +4,14 @@ import {
   ArrowRight, ArrowUpRight, Check, ChartNoAxesColumnIncreasing, FileText,
   ListChecks, Map, Play, RotateCcw, Settings, Sparkles, Sun, Wallet, X,
   Building2, Info, ChevronLeft, ChevronRight, CircleHelp, MapPin,
+  Trophy, Zap, Presentation,
 } from 'lucide-react';
 import { CityMap } from '@/features/simulator/CityMap';
 import { InitiativeThumbnail } from '@/features/simulator/InitiativeThumbnail';
 import { CharacterPortrait } from '@/features/simulator/CharacterPortrait';
 import { ScenarioDashboard, directionLabels } from '@/features/simulator/ScenarioDashboard';
 import { getMapInitiatives } from '@/features/simulator/mapInitiatives';
+import { DistrictChanges, EventPanel, PresentationPanel, Recommendations, TeamComparison } from '@/features/simulator/Extensions';
 import { loadCatalog, submitScenario } from '@/features/simulator/api';
 import type { Catalog, Decision, Scenario } from '@/features/simulator/api';
 import './Home.scss';
@@ -20,7 +22,12 @@ const EXAMPLE: Decision[] = [
   { measureId: 'M10', district: 'Нура' }, { measureId: 'M12', district: null },
   { measureId: 'M5', district: 'Сарыарка' },
 ];
-type Panel = 'map' | 'plan' | 'analysis' | 'indicators' | 'help';
+const EVENT_EXAMPLE: Decision[] = [
+  { measureId: 'M9', district: 'Нура' }, { measureId: 'M10', district: 'Нура' },
+  { measureId: 'M11', district: 'Нура' }, { measureId: 'M12', district: null },
+  { measureId: 'M4', district: 'Сарыарка' },
+];
+type Panel = 'map' | 'plan' | 'analysis' | 'indicators' | 'help' | 'teams' | 'events' | 'presentation';
 const tips = [
   'Выберите район на карте, затем добавьте инициативу. Для городских мер назначение района не требуется.',
   'Не больше двух мер одного направления. Некоторые инициативы несовместимы — сервер проверит ваш план.',
@@ -43,6 +50,7 @@ const Home = () => {
   const [submitting, setSubmitting] = useState(false);
   const [panel, setPanel] = useState<Panel>('map');
   const [tipIndex, setTipIndex] = useState(0);
+  const [teamName, setTeamName] = useState('');
   const advisor = advisors[tipIndex];
   const [focusedInitiative, setFocusedInitiative] = useState<string | null>(null);
   const mapInitiatives = useMemo(() => catalog
@@ -51,7 +59,7 @@ const Home = () => {
 
   const refreshCatalog = async () => {
     setLoading(true); setError('');
-    try { setCatalog(await loadCatalog()); }
+    try { setCatalog(await loadCatalog(catalog?.event?.id)); }
     catch { setError('Не удалось загрузить каталог. Проверьте подключение к серверу.'); }
     finally { setLoading(false); }
   };
@@ -81,6 +89,7 @@ const Home = () => {
     const slot = choices.findIndex((choice) => !choice.measureId);
     const measure = catalog.measures.find((item) => item.id === measureId);
     if (slot === -1 || !measure) return;
+    if (spent + measure.cost > budget) { setError('На эту меру не хватает доступного бюджета. Перераспределите план.'); setPanel('plan'); return; }
     updateChoice(slot, { measureId, district: measure.scope === 'Город' ? null : activeDistrict ?? '' });
     if (measure.scope === 'Район' && !activeDistrict) setPanel('plan');
   };
@@ -92,13 +101,27 @@ const Home = () => {
       return;
     }
     setSubmitting(true); setResult(null); setError('');
-    try { setResult(await submitScenario(choices)); setPanel('analysis'); }
+    try { setResult(await submitScenario(choices, catalog?.event?.id)); setPanel('analysis'); }
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Не удалось рассчитать сценарий.'); setPanel('plan'); }
     finally { setSubmitting(false); }
   };
   const reset = () => {
     if (submitting) return;
     setChoices(emptyChoices()); setResult(null); setError('');
+    setFocusedInitiative(null);
+  };
+  const changeEvent = async (id: string | null) => {
+    if (submitting) return;
+    setSubmitting(true); setError('');
+    try {
+      const next = await loadCatalog(id);
+      setCatalog(next); setResult(null); setPanel('plan');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Не удалось изменить условия.'); }
+    finally { setSubmitting(false); }
+  };
+  const applyRecommendation = (decisions: Decision[]) => {
+    if (submitting) return;
+    setChoices(decisions.map((item) => ({ ...item }))); setResult(null); setError(''); setPanel('plan');
     setFocusedInitiative(null);
   };
   const closePanel = () => setPanel('map');
@@ -132,12 +155,17 @@ const Home = () => {
         </div>
       </header>
 
+      {catalog?.event && <div className="event-banner" role="status"><span><strong>{catalog.event.title}</strong> · резерв {catalog.reservedBudget} из 100 · на меры доступно {budget} ед. · дополнительные синтетические условия</span><button onClick={() => setPanel('events')}>Условия события</button></div>}
+
       <div className="command__layout">
         <nav className="command__nav" aria-label="Разделы сценария">
           <button type="button" className={panel === 'map' ? 'is-active' : ''} aria-pressed={panel === 'map'} onClick={closePanel}><Map size={22} /><span>Карта</span></button>
           <button type="button" onClick={() => setPanel('indicators')} aria-pressed={panel === 'indicators'}><ChartNoAxesColumnIncreasing size={22} /><span>Показатели</span></button>
           <button type="button" onClick={() => setPanel('plan')} aria-pressed={panel === 'plan'}><ListChecks size={22} /><span>Решения</span>{selectedCount > 0 && <b>{selectedCount}</b>}</button>
           <button type="button" onClick={() => setPanel('analysis')} aria-pressed={panel === 'analysis'}><FileText size={22} /><span>AI-отчёт</span></button>
+          <button type="button" onClick={() => setPanel('teams')} aria-pressed={panel === 'teams'}><Trophy size={22} /><span>Команды</span></button>
+          <button type="button" onClick={() => setPanel('events')} aria-pressed={panel === 'events'}><Zap size={22} /><span>События</span></button>
+          <button type="button" onClick={() => setPanel('presentation')} aria-pressed={panel === 'presentation'}><Presentation size={22} /><span>Презентация</span></button>
           <button type="button" onClick={() => setPanel('help')} className="command__nav-bottom" aria-pressed={panel === 'help'}><Settings size={22} /><span>Правила</span></button>
         </nav>
         <div className="command__body" aria-busy={loading || submitting}>
@@ -176,8 +204,8 @@ const Home = () => {
                       <InitiativeThumbnail measureId={measure.id} />
                       <div className="initiative__info"><strong>{measure.name}</strong><small>{measure.scope === 'Город' ? 'Все районы' : activeDistrict ?? 'Районная инициатива'}<br />Эффект через {measure.lagQuarters} кв.</small></div>
                       <div className="initiative__action"><strong>{measure.cost} <small>ед.</small></strong><button type="button"
-                        disabled={submitting || isSelected || selectedCount === 5} onClick={() => addMeasure(measure.id)}>
-                        {isSelected ? <><Check size={13} /> В плане</> : 'Выбрать'}
+                        disabled={submitting || isSelected || selectedCount === 5 || spent + measure.cost > budget} onClick={() => addMeasure(measure.id)}>
+                        {isSelected ? <><Check size={13} /> В плане</> : spent + measure.cost > budget ? 'Нет бюджета' : 'Выбрать'}
                       </button>{isSelected && <button type="button" className="initiative__locate" onClick={() => {
                         const placement = mapInitiatives.find((item) => item.measure.id === measure.id && item.district === activeDistrict)
                           ?? mapInitiatives.find((item) => item.measure.id === measure.id);
@@ -219,8 +247,9 @@ const Home = () => {
         <dialog className="sim-panel plan" id="panel-plan" aria-labelledby="plan-heading" {...dialogProps}>
           {closeButton}
           <header className="sim-panel__header"><span className="sim-panel__eyebrow">ВАШИ РЕШЕНИЯ</span><h2 id="plan-heading">План города</h2><p>Пять разных мер · не больше двух в одном направлении.</p></header>
+          {catalog.event && <p className="conditions-note">{catalog.event.title}: резерв {catalog.reservedBudget} ед., на план доступно {budget}. {spent > budget ? 'Текущий набор больше не помещается в бюджет — замените меры.' : 'Проверьте районы и перераспределение средств.'}</p>}
           <button type="button" className="plan__example" disabled={submitting} onClick={() => {
-            setChoices(EXAMPLE.map((item) => ({ ...item }))); setActiveDistrict('Нура'); setResult(null); setError('');
+            setChoices((catalog.event ? EVENT_EXAMPLE : EXAMPLE).map((item) => ({ ...item }))); setActiveDistrict('Нура'); setResult(null); setError('');
             setFocusedInitiative('M7:Нура');
           }}>Загрузить демо-набор <ArrowRight size={16} /></button>
           <form onSubmit={(event) => { event.preventDefault(); void calculate(); }}>
@@ -245,16 +274,32 @@ const Home = () => {
           {closeButton}<header className="sim-panel__header"><span className="sim-panel__eyebrow"><Sparkles size={16} /> OPENAI · АНАЛИЗ СЦЕНАРИЯ</span><h2 id="analysis-heading">Эффект ваших решений</h2></header>
           {result ? <><div className="analysis-panel__summary"><div><small>Quality of Life Score</small><strong>{result.score.toFixed(2)}</strong></div><div><small>Стоимость</small><strong>{result.cost} <em>ед.</em></strong></div><div><small>Остаток</small><strong>{result.remaining} <em>ед.</em></strong></div></div>
             {result.analysis ? <div className="analysis-panel__text"><ReactMarkdown>{result.analysis}</ReactMarkdown></div> : <p className="sim-panel__error" role="alert">{result.analysisError}</p>}
-            <p className="analysis-panel__footnote">Критических показателей: {result.criticalPairs} · Синергии: {result.synergies.join(', ') || 'нет'}</p></>
+            <p className="analysis-panel__footnote">Критических показателей: {result.criticalPairs} · Синергии: {result.synergies.join(', ') || 'нет'}</p>
+            <div className="extension-actions"><button className="extension-secondary" onClick={() => setPanel('teams')}>Сохранить для сравнения</button><button className="extension-secondary" onClick={() => setPanel('presentation')}>Создать презентацию</button></div>
+            <Recommendations catalog={catalog} decisions={choices} result={result} busy={submitting} setBusy={setSubmitting} onApply={applyRecommendation} /></>
             : <div className="sim-panel__empty"><Sparkles size={36} /><h3>Сначала выберите пять решений</h3><p>Рассчитаем их влияние и объясним сильные стороны, риски и компромиссы.</p><button className="primary-button" onClick={() => setPanel('plan')}>Открыть план <ArrowRight size={16} /></button></div>}
         </dialog>
         <dialog className="sim-panel indicators-panel" id="panel-indicators" aria-labelledby="indicators-heading" {...dialogProps}>
           {closeButton}<header className="sim-panel__header"><span className="sim-panel__eyebrow">ПЯТЬ РАЙОНОВ · ДЕСЯТЬ ПОКАЗАТЕЛЕЙ</span><h2 id="indicators-heading">Показатели города</h2><p>{result ? 'После выбранных решений.' : 'Исходное состояние.'} Шкала 0–100: больше — лучше.</p></header>
+          <DistrictChanges catalog={catalog} result={result} districtName={activeDistrict} onDistrict={setActiveDistrict} />
           <div className="indicators-panel__table"><table><thead><tr><th>Показатель</th>{catalog.districts.map((district) => <th key={district.name}>{district.name}</th>)}</tr></thead><tbody>{catalog.indicators.map((indicator) => <tr key={indicator.code}><th>{indicator.name}</th>{catalog.districts.map((district) => {
             const change = result?.districts.find((item) => item.name === district.name)?.changes[indicator.code] ?? 0;
             const value = district.indicators[indicator.code] + change;
             return <td key={district.name} className={value < 40 ? 'is-negative' : ''}>{value.toFixed(1)}</td>;
           })}</tr>)}</tbody></table></div>
+        </dialog>
+        <dialog className="sim-panel extension-panel" id="panel-teams" aria-labelledby="teams-heading" {...dialogProps}>
+          {closeButton}<header className="sim-panel__header"><span className="sim-panel__eyebrow">ОБЩИЙ РЕЙТИНГ</span><h2 id="teams-heading">Сравнение команд</h2></header>
+          <TeamComparison catalog={catalog} decisions={choices} result={result} teamName={teamName} setTeamName={setTeamName} busy={submitting} setBusy={setSubmitting} open={panel === 'teams'} />
+        </dialog>
+        <dialog className="sim-panel extension-panel" id="panel-events" aria-labelledby="events-heading" {...dialogProps}>
+          {closeButton}<header className="sim-panel__header"><span className="sim-panel__eyebrow">ГОРОД МЕНЯЕТСЯ</span><h2 id="events-heading">Неожиданные события</h2></header>
+          {error && <p className="sim-panel__error" role="alert">{error}</p>}
+          <EventPanel catalog={catalog} busy={submitting} onActivate={changeEvent} />
+        </dialog>
+        <dialog className="sim-panel extension-panel" id="panel-presentation" aria-labelledby="presentation-heading" {...dialogProps}>
+          {closeButton}<header className="sim-panel__header"><span className="sim-panel__eyebrow">ПРЕЗЕНТАЦИЯ КОМАНДЫ</span><h2 id="presentation-heading">Пять слайдов о вашем решении</h2></header>
+          <PresentationPanel catalog={catalog} decisions={choices} result={result} teamName={teamName} setTeamName={setTeamName} busy={submitting} setBusy={setSubmitting} />
         </dialog>
         <dialog className="sim-panel help-panel" id="panel-help" aria-labelledby="help-heading" {...dialogProps}>
           {closeButton}<header className="sim-panel__header"><span className="sim-panel__eyebrow"><CircleHelp size={16} /> КАК ИГРАТЬ</span><h2 id="help-heading">Пять решений для города</h2></header>
@@ -262,6 +307,7 @@ const Home = () => {
           <p><Info size={16} /> Карта — условный 3D-макет. Все показатели синтетические, это не прогноз для реальной Астаны.</p>
           <p>Вращайте карту перетаскиванием; приближайте колёсиком. Для клавиатуры доступны все кнопки районов.</p>
           <p>Выбранные инициативы подсвечивают условные участки. Районные — только в назначенном районе, городские — во всех пяти. Нажмите на значок меры или «На карте», чтобы увидеть её карточку; это отметки плана, а не завершённого строительства.</p>
+          <p>«Команды» сохраняет рассчитанные наборы на общем сервере и сравнивает одинаковые условия. «События» резервирует часть бюджета и меняет стартовые показатели. В AI-отчёте можно получить проверенное улучшение одной заменой, а в «Презентации» — скачать PPTX.</p>
         </dialog>
       </>}
     </main>

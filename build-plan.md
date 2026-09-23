@@ -4,6 +4,8 @@
 
 ## Work Items
 
+- MVP-2 — Пять опциональных функций по запросу пользователя; status: IN_PROGRESS; priority: high; dependency: MVP-1; canonical spec: существующие `001-city-scenario-*`, R-08–R-12/AC-06–AC-10; done when comparison persists, charts match data, verified recommendations improve plans, events require reallocation, a real PPTX downloads, and tests/typecheck/build/browser checks pass. Изолированная ветка `feature/city-team-scenarios`.
+
 Use: BACKLOG | BLOCKED | READY | IN_PROGRESS | VERIFY | DONE
 
 Each work item should include ID, title, status, priority, dependencies, canonical spec, and definition of done.

@@ -10,6 +10,7 @@ import * as rateLimitPackage from 'express-rate-limit';
 import authRouter from './features/auth/router.js';
 import blogRouter from './features/blog/router.js';
 import mediaRouter from './features/media/router.js';
+import simulatorRouter from './features/simulator/router.js';
 import { errorHandler } from './shared/index.js';
 
 dotenv.config({ path: './config/config.env', quiet: true });
@@ -90,6 +91,7 @@ app.use(cors());
 app.use('/api/auth', authRouter);
 app.use('/media', mediaRouter);
 app.use('/api/blog', blogRouter);
+app.use('/api/simulator', simulatorRouter);
 
 app.use(errorHandler);
 

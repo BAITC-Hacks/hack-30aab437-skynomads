@@ -4,41 +4,46 @@
 FEATURE
 
 ## Status
-Verify
+In Progress
 
 ## Source
-User request to convert `docs/PRD.odt` to Markdown and `docs/data-set.odt` to JSON; these ODTs remain the source for this conversion.
+`docs/specs/001-city-scenario-feature.md` and `docs/specs/001-city-scenario-implementation.md`, approved split of `docs/PRD.md` (SHA-256 `8bf43c4c9a6e37ba10e4e1b14951bb0382c1f96b8125af41311e4f387cea8ee5`). Dataset: `docs/data-set.json`.
 
 ## Goals
-Make the existing preliminary track and dataset accessible in text-based formats without changing requirements or deleting originals.
+One real end-to-end scenario: five choices → deterministic validation and Score → real OpenAI explanation → reproducible demo.
 
 ## Scope
-Add `docs/PRD.md` and `docs/data-set.json` with the complete source content, including quantitative data, score rules, constraints, examples, and evaluation criteria.
+`R-01`–`R-07`, `AC-01`–`AC-05` from the approved feature spec.
 
 ## Non-Goals
-No application implementation, new PRD scope, spec split, or changes to the source ODT files.
+Optional comparison, events, presentations, and product extensions.
 
 ## Acceptance Criteria
-- Markdown covers every PRD section and assessment table from the ODT.
-- JSON is valid and carries all 10 indicator definitions, five district rows, 14 initiatives, synergies, incompatibilities, score calculation, rules, and worked examples from the ODT.
-- Source ODTs remain intact.
+- `AC-01`: shared budget 100; example cost 95 accepted, overbudget refused.
+- `AC-02`: five valid choices incl. district assignments accepted; invalid inputs explain why.
+- `AC-03`: deterministic baseline 52.56 and example approximately 56.5431 before display rounding; synergies, lag, thresholds and changes work.
+- `AC-04`: OpenAI explanation from computed data; explicit error on missing key or API failure, no fake result.
+- `AC-05`: clean launch and error check reproducible from README.
 
 ## Decisions
-Use readable Markdown and structured JSON; keep source naming and numbers, with no inferred implementations.
+- React/Express scaffold and dataset already exist. User selected OpenAI API; use `gpt-4o-mini` via Responses API on the server, no added SDK needed. Display Score with two decimals; calculation remains full precision.
 
 ## Open Questions
-None needed for format conversion.
+- Live API verification depends on a locally configured OpenAI key; do not save or print it.
 
 ## Implementation Plan
-- [x] Transcribe and format `docs/PRD.odt` into `docs/PRD.md`; compare against source text and table.
-- [x] Structure `docs/data-set.odt` into `docs/data-set.json`; parse and check counts, numbers, rules and examples against source.
-- [x] Verify changed paths and preserve both original ODTs.
+- [x] Implement and test deterministic dataset-backed validation and Score in `apps/backend/features/simulator/`; load canonical `docs/data-set.json` from the backend workspace.
+- [x] Add an Express API endpoint to serve catalog and evaluate five decisions; call OpenAI Responses API with calculated data and explicit configuration/API errors.
+- [x] Replace scaffold home screen with a selection/results flow driven by the API.
+- [ ] Finish live OpenAI and full UI verification after local key is supplied; `.env.example` and README updated, valid/invalid API smoke checks, tests, typecheck and build passed.
 
 ## Verification Evidence
-- `docs/PRD.md` checked against ODT text: all sections, requirements, checks, and five evaluation rows (25/25/25/15/10) present.
-- PowerShell `ConvertFrom-Json` succeeded: 10 indicator definitions, 5 districts, 14 measures, 3 synergies, 3 incompatibilities; population shares and indicator weights sum to 1; district baseline scores recalculate to source values.
-- Independent arithmetic check of the source example: cost 95, computed Score 56.5556 vs source approximate 56.5 (no application code has been added).
-- `git diff --check` produced no errors; source ODTs were not edited. No repository Verify command exists yet (application not scaffolded), so formal completion remains pending.
+- `yarn workspace @react-app/backend test`: 6/6 pass (formula, lag/synergy/critical threshold, input rules, missing key and OpenAI request/response contract).
+- `yarn typecheck`, `yarn build`: pass with current code.
+- Local Express smoke: GET `/api/simulator` returns 14 measures, budget 100, baseline 52.56; empty POST returns HTTP 400; valid example POST returns cost 95, score 56.5431, M10 + M12 synergy and an explicit no-key AI error.
+- Webpack development server and `/api` proxy loaded in a headless Edge browser; desktop 1365px and narrow 500px screenshots inspected. 390px screenshot is clipped by headless Edge's effective viewport minimum; true 390px layout remains NOT VERIFIED.
+- Live AI response: NOT VERIFIED (no `OPENAI_API_KEY` configured in current environment); no AI output fabricated.
 
 ## Notes
-- Existing unrelated untracked project files were preserved.
+- Starting from clean worktree at commit `1d3a1dd`. Earlier DOC-1 conversion archived at `history/features/DOC-1-document-conversion.md`.
+- Output Score is displayed with two decimals (56.54 for the demo); calculations retain full precision. README describes data access and isolated deployment limitation.

@@ -30,7 +30,23 @@ test('analysis sends computed data through the real Responses HTTP contract', as
     const body = JSON.parse(String(options?.body)) as { model: string; input: string; store: boolean };
     assert.equal(body.model, 'gpt-4o-mini');
     assert.equal(body.store, false);
-    assert.equal((JSON.parse(body.input) as { score: number }).score, scenario.score);
+    const facts = JSON.parse(body.input) as {
+      score: number;
+      strongestImprovement: { district: string };
+      weakestDistrict: { district: string };
+      districtMeasureCounts: Record<string, number>;
+      selectedMeasures: { name: string; effects: Record<string, number> }[];
+      districtIndicatorChanges: { district: string; changes: Record<string, number> }[];
+      citywideMeasures: string[];
+    };
+    assert.equal(facts.score, 56.54);
+    assert.equal(facts.strongestImprovement.district, 'Нура');
+    assert.equal(facts.weakestDistrict.district, 'Нура');
+    assert.deepEqual(facts.districtMeasureCounts, { Нура: 3, Сарыарка: 1 });
+    assert.equal(facts.selectedMeasures.length, 5);
+    assert.equal(facts.selectedMeasures[0].effects.S1, 10);
+    assert.equal(facts.districtIndicatorChanges.find((item) => item.district === 'Нура')?.changes.B1, 12.5);
+    assert.equal(facts.citywideMeasures.length, 1);
     assert.equal((options?.headers as Record<string, string>).Authorization, 'Bearer test-only-key');
     return new Response(JSON.stringify({
       status: 'completed',

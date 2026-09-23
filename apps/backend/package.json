@@ -10,7 +10,7 @@
     "dev": "tsx watch server.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test features/simulator/service.test.ts features/simulator/analysis.test.ts"
+    "test": "node --import tsx --test features/simulator/service.test.ts features/simulator/analysis.test.ts features/simulator/dataset.test.ts"
   },
   "dependencies": {
     "apicache": "^1.6.3",

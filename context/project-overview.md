@@ -14,7 +14,7 @@ Copied `react-app` boilerplate: Node.js >=22, Yarn Classic 1.x workspaces; React
 
 ## Architecture
 
-`apps/frontend/app/pages/Home.tsx` is the React/SCSS scenario screen; `apps/frontend/app/features/simulator/api.ts` calls `/api/simulator` via Webpack's `/api` proxy. `apps/backend/features/simulator/` validates input, loads the canonical JSON dataset, calculates the Score and requests an OpenAI explanation. Existing auth/blog/media features belong to the copied scaffold, not the scenario.
+`apps/frontend/app/pages/Home.tsx` is the React/SCSS scenario screen; `apps/frontend/app/features/simulator/api.ts` calls `/api/simulator` via Webpack's `/api` proxy. `apps/backend/features/simulator/` validates input, loads the minimal `apps/backend/db.json` dataset, calculates the Score and requests an OpenAI explanation. The full source dataset remains in `docs/data-set.json`. Existing auth/blog/media features belong to the copied scaffold, not the scenario.
 
 ## Repository Map
 
@@ -23,6 +23,8 @@ Copied `react-app` boilerplate: Node.js >=22, Yarn Classic 1.x workspaces; React
 - `apps/frontend/`, `apps/backend/` — copied SPA/API boilerplate, including sample features and per-app READMEs.
 - `docs/PRD.md` — reviewed track PRD and evaluation criteria.
 - `docs/data-set.json` — structured synthetic dataset and scoring rules.
+- `docs/data-set.md` — human-readable tables and explanation of the full source dataset.
+- `apps/backend/db.json` — runtime-only projection of the source dataset; a backend test checks it against `docs/data-set.json`.
 - `docs/product-brief.md`, `current-prd.md`, `docs/specs/` — product documentation workflow and approved split.
 - `.agents/skills/`, `.agents/templates/`, `.agents/scripts/` — copied Devtools toolkit.
 - `.gitignore` — ignores `.agents/`.
@@ -35,7 +37,7 @@ React router/layout and Express routers/middleware provide entry points. `apps/b
 ## Commands
 
 - Dev: `yarn start` (runs root `dev:frontend` and `dev:backend` scripts).
-- Test: `yarn workspace @react-app/backend test` (six simulator domain/AI contract tests passed).
+- Test: `yarn workspace @react-app/backend test` (seven simulator domain/AI/data-consistency tests passed).
 - Typecheck: `yarn typecheck` (passed after frozen lockfile install).
 - Lint: UNKNOWN — no lint script in copied manifests.
 - Build: `yarn build` (passed after frozen lockfile install).
@@ -43,7 +45,7 @@ React router/layout and Express routers/middleware provide entry points. `apps/b
 
 ## Current State
 
-Repository includes source and per-app Vercel configuration but no deployed environment or CI workflow was found. Simulator implementation exists locally, with passing tests/build and API smoke checks; live OpenAI response and clean-clone UI walkthrough are not yet verified. Original ODT files were removed in team commit `1d3a1dd` after conversion.
+Repository includes source and per-app Vercel configuration but no deployed environment or CI workflow was found. Simulator implementation exists locally, with passing tests/build, API smoke checks and a successful live OpenAI response from the example scenario. The model now receives backend-computed comparison/allocation facts and selected measure effects rather than being asked to infer rankings. Full browser walkthrough and independent clean-clone launch remain unverified. Original ODT files were removed in team commit `1d3a1dd` after conversion.
 
 ## Current Milestone
 
@@ -57,9 +59,9 @@ UNKNOWN — no approved build plan yet.
 
 ## Known Risks
 
-- The actual OpenAI response cannot be checked until a key is provided locally; current environment has none.
-- Backend reads `docs/data-set.json` relative to the backend workspace working directory. An isolated backend deployment would need that file bundled or a data-path adjustment.
-- A real AI-response check requires an available OpenAI API key; model responses cannot be verified without one.
+- Full browser walkthrough of selection to AI explanation and independent clean launch by another participant are not yet evidenced.
+- Backend loads `db.json` relative to the backend workspace working directory; run through workspace scripts or ensure this working directory in deployment. Backend Vercel config includes `db.json` in bundled files.
+- Real OpenAI responses require a locally configured API key in `apps/backend/.env`; the key is excluded from Git. The live API response was observed without logging the key.
 - `.agents/` is ignored by Git, so a clean clone will not contain the Devtools toolkit unless provisioned separately.
 - The hackathon playbook is outside the repository and will not be included in a clean clone.
 

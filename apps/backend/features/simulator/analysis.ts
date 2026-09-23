@@ -9,6 +9,32 @@ export const explainScenario = async (result: ScenarioResult): Promise<string> =
   const key = process.env.OPENAI_API_KEY?.trim();
   if (!key) throw new Error('AI-анализ недоступен: задайте OPENAI_API_KEY на сервере.');
 
+  const strongest = result.districts.reduce((best, district) =>
+    district.delta > best.delta ? district : best);
+  const weakest = result.districts.reduce((lowest, district) =>
+    district.score < lowest.score ? district : lowest);
+  const districtMeasures = result.measures.filter((measure) => measure.district !== null);
+  const allocation = Object.fromEntries(
+    [...new Set(districtMeasures.map((measure) => measure.district))].map((district) =>
+      [district, districtMeasures.filter((measure) => measure.district === district).length]),
+  );
+  const facts = {
+    score: Number(result.score.toFixed(2)),
+    baselineScore: Number(result.baselineScore.toFixed(2)),
+    strongestImprovement: { district: strongest.name, delta: Number(strongest.delta.toFixed(2)) },
+    weakestDistrict: { district: weakest.name, score: Number(weakest.score.toFixed(2)) },
+    criticalPairs: result.criticalPairs,
+    districtMeasureCounts: allocation,
+    selectedMeasures: result.measures,
+    districtIndicatorChanges: result.districts.map((district) => ({
+      district: district.name,
+      changes: district.changes,
+    })),
+    citywideMeasures: result.measures.filter((measure) => measure.district === null)
+      .map((measure) => measure.name),
+    confirmedSynergies: result.synergies,
+  };
+
   let response: Response;
   try {
     response = await fetch('https://api.openai.com/v1/responses', {
@@ -17,9 +43,9 @@ export const explainScenario = async (result: ScenarioResult): Promise<string> =
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         store: false,
-        max_output_tokens: 450,
-        instructions: 'Ты аналитик синтетического городского симулятора. Ответь по-русски кратко: сильные стороны, риски и компромиссы. Используй только переданные рассчитанные значения; ничего не пересчитывай и не выдумывай цифры. Не утверждай, что это реальный прогноз для Астаны.',
-        input: JSON.stringify(result),
+        max_output_tokens: 300,
+        instructions: 'Ты формулируешь краткое объяснение готовых фактов синтетической городской модели по-русски. Ответь ровно тремя разделами: «Сильные стороны» — strongestImprovement и подтверждённая синергия, если есть; «Риски» — weakestDistrict и факт наличия/отсутствия критических показателей; «Компромиссы» — распределение районных мер districtMeasureCounts и действие citywideMeasures на все районы. Если называешь эффект конкретной меры, сверяй его код только с selectedMeasures[].effects и районом меры; districtIndicatorChanges показывают итоговые изменения. Значения и названия уже рассчитаны backend: ничего не сортируй, не вычисляй, не подменяй слабейший район и не придумывай дополнительных мер. Не приводи чисел в тексте: они показаны пользователю отдельно. Не делай предположений о здоровье, населении, стоимости, сроках или реализации вне данных. Это не прогноз для реальной Астаны.',
+        input: JSON.stringify(facts),
       }),
       signal: AbortSignal.timeout(20000),
     });

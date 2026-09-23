@@ -2,7 +2,7 @@
   "framework": null,
   "functions": {
     "api/index.ts": {
-      "includeFiles": "{models/**/*.json,public/**}"
+      "includeFiles": "{db.json,models/**/*.json,public/**}"
     }
   },
   "rewrites": [

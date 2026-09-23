@@ -1,0 +1,60 @@
+{
+  "indicators": {
+    "definitions": [
+      { "code": "T1", "direction": "Транспорт", "name": "Разгрузка дорог" },
+      { "code": "T2", "direction": "Транспорт", "name": "Доступность общественного транспорта" },
+      { "code": "E1", "direction": "Экология", "name": "Озеленение" },
+      { "code": "E2", "direction": "Экология", "name": "Качество воздуха" },
+      { "code": "S1", "direction": "Соцсфера", "name": "Школы и детсады" },
+      { "code": "S2", "direction": "Соцсфера", "name": "Поликлиники и первичная медпомощь" },
+      { "code": "B1", "direction": "Безопасность", "name": "Безопасность улиц" },
+      { "code": "B2", "direction": "Безопасность", "name": "Безопасность дорожного движения" },
+      { "code": "C1", "direction": "Сервисы", "name": "Надёжность ЖКХ" },
+      { "code": "C2", "direction": "Сервисы", "name": "Скорость решения обращений жителей" }
+    ]
+  },
+  "districts": [
+    { "name": "Есиль", "populationShare": 0.27, "indicators": { "T1": 45, "T2": 62, "E1": 68, "E2": 72, "S1": 48, "S2": 55, "B1": 78, "B2": 60, "C1": 75, "C2": 70 }, "baselineDistrictScore": 62.99 },
+    { "name": "Алматы", "populationShare": 0.24, "indicators": { "T1": 40, "T2": 75, "E1": 50, "E2": 55, "S1": 60, "S2": 65, "B1": 62, "B2": 52, "C1": 50, "C2": 60 }, "baselineDistrictScore": 57.06 },
+    { "name": "Сарыарка", "populationShare": 0.20, "indicators": { "T1": 50, "T2": 70, "E1": 42, "E2": 40, "S1": 62, "S2": 68, "B1": 58, "B2": 55, "C1": 45, "C2": 55 }, "baselineDistrictScore": 54.65 },
+    { "name": "Байконур", "populationShare": 0.13, "indicators": { "T1": 52, "T2": 68, "E1": 55, "E2": 50, "S1": 58, "S2": 60, "B1": 52, "B2": 58, "C1": 55, "C2": 58 }, "baselineDistrictScore": 56.63 },
+    { "name": "Нура", "populationShare": 0.16, "indicators": { "T1": 55, "T2": 40, "E1": 45, "E2": 65, "S1": 38, "S2": 35, "B1": 55, "B2": 50, "C1": 60, "C2": 50 }, "baselineDistrictScore": 49.18 }
+  ],
+  "simulation": { "horizonQuarters": 8 },
+  "measures": [
+    { "id": "M1", "direction": "Транспорт", "name": "Выделенные полосы для автобусов", "scope": "Район", "cost": 18, "lagQuarters": 2, "fullEffects": { "T1": 6, "T2": 9 } },
+    { "id": "M2", "direction": "Транспорт", "name": "Умные светофоры (адаптивное управление)", "scope": "Город", "cost": 22, "lagQuarters": 2, "fullEffects": { "T1": 4, "B2": 3 } },
+    { "id": "M3", "direction": "Транспорт", "name": "Линия ЛРТ / расширение", "scope": "Район", "cost": 30, "lagQuarters": 4, "fullEffects": { "T1": 16, "T2": 20, "E2": 4 } },
+    { "id": "M4", "direction": "Экология", "name": "Парк / сквер", "scope": "Район", "cost": 15, "lagQuarters": 2, "fullEffects": { "E1": 12, "E2": 3, "B1": 2 } },
+    { "id": "M5", "direction": "Экология", "name": "Перевод частного сектора на чистое топливо", "scope": "Район", "cost": 25, "lagQuarters": 3, "fullEffects": { "E2": 14, "C1": 4 } },
+    { "id": "M6", "direction": "Экология", "name": "Городская программа озеленения и ветрозащитных полос", "scope": "Город", "cost": 20, "lagQuarters": 4, "fullEffects": { "E1": 5, "E2": 3 } },
+    { "id": "M7", "direction": "Соцсфера", "name": "Школа + детсад (модульное строительство)", "scope": "Район", "cost": 24, "lagQuarters": 3, "fullEffects": { "S1": 16 } },
+    { "id": "M8", "direction": "Соцсфера", "name": "Центр семейного здоровья / поликлиника", "scope": "Район", "cost": 20, "lagQuarters": 3, "fullEffects": { "S2": 14 } },
+    { "id": "M9", "direction": "Соцсфера", "name": "Дворовые спорт-хабы", "scope": "Район", "cost": 10, "lagQuarters": 1, "fullEffects": { "S1": 3, "S2": 3, "B1": 3 } },
+    { "id": "M10", "direction": "Безопасность", "name": "Освещение и камеры (расширение Safe City)", "scope": "Район", "cost": 12, "lagQuarters": 1, "fullEffects": { "B1": 12, "B2": 2 } },
+    { "id": "M11", "direction": "Безопасность", "name": "Безопасные переходы и школьные зоны", "scope": "Район", "cost": 10, "lagQuarters": 1, "fullEffects": { "B2": 12, "T1": -2 } },
+    { "id": "M12", "direction": "Сервисы", "name": "Единая цифровая платформа обращений", "scope": "Город", "cost": 14, "lagQuarters": 1, "fullEffects": { "C2": 5 } },
+    { "id": "M13", "direction": "Сервисы", "name": "Модернизация тепло- и водосетей", "scope": "Район", "cost": 28, "lagQuarters": 4, "fullEffects": { "C1": 18, "E2": 2 } },
+    { "id": "M14", "direction": "Сервисы", "name": "Аварийные бригады ЖКХ + раннее оповещение", "scope": "Город", "cost": 16, "lagQuarters": 1, "fullEffects": { "C1": 5, "C2": 2 } }
+  ],
+  "synergies": {
+    "pairs": [
+      { "measureIds": ["M1", "M2"], "bonus": { "T1": 2 } },
+      { "measureIds": ["M10", "M12"], "bonus": { "B1": 2 } },
+      { "measureIds": ["M5", "M6"], "bonus": { "E2": 2 } }
+    ]
+  },
+  "incompatibilities": [
+    { "measureIds": ["M1", "M3"], "condition": "В любом районе" },
+    { "measureIds": ["M4", "M7"], "condition": "В одном районе" },
+    { "measureIds": ["M5", "M13"], "condition": "В одном районе" }
+  ],
+  "score": {
+    "indicatorWeights": { "T1": 0.10, "T2": 0.10, "E1": 0.09, "E2": 0.11, "S1": 0.11, "S2": 0.11, "B1": 0.09, "B2": 0.09, "C1": 0.10, "C2": 0.10 },
+    "cityAverageWeight": 0.7,
+    "minimumDistrictWeight": 0.3,
+    "criticalIndicatorThresholdExclusive": 40,
+    "criticalPairPenalty": 1.0
+  },
+  "rules": { "budget": 100, "decisionCountExact": 5, "maxMeasuresPerDirection": 2 }
+}

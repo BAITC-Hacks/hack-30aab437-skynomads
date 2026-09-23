@@ -63,7 +63,7 @@ export class InputError extends Error {}
 
 /* Yarn workspaces run backend scripts with apps/backend as the working directory. */
 const dataset = JSON.parse(
-  readFileSync(resolve(process.cwd(), '../../docs/data-set.json'), 'utf8'),
+  readFileSync(resolve(process.cwd(), 'db.json'), 'utf8'),
 ) as Dataset;
 
 const measuresById = new Map(dataset.measures.map((measure) => [measure.id, measure]));
